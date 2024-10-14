@@ -1,10 +1,11 @@
-from config import db, Resource
-from sqlalchemy.orm import validates
-from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy import func
-import re
-from sqlalchemy.ext.hybrid import hybrid_property
+"""
+This module implements the models and define relationships between models."""
+from config import db
+# from sqlalchemy.orm import validates
+# from sqlalchemy_serializer import SerializerMixin
+# from sqlalchemy.ext.associationproxy import association_proxy
+# import re
+# from sqlalchemy.ext.hybrid import hybrid_property
 
 
 
@@ -21,7 +22,7 @@ class User(db.Model):
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     def __repr__(self):
-        return f'User {self.name} ,{self.username}, {self.password_hash}, {self.created_at}, {self.updated_at}'
+        return f'User {self.id}, {self.name} ,{self.username}, {self.password_hash}, {self.created_at}, {self.updated_at}'
 
 
 class Profit(db.Model):
@@ -40,9 +41,9 @@ class Profit(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     sales_id = db.Column(db.Integer, db.ForeignKey(
         'product_sales.id'), nullable=False)
-    
+
     def __repr__(self):
-        return f'Profit {self.profit_amount}, {self.margin}, {self.product_id}, {self.user_id}, {self.sales_id}, {self.created_at}, {self.updated_at}'
+        return f'Profit {self.id}, {self.profit_amount}, {self.margin}, {self.product_id}, {self.user_id}, {self.sales_id}, {self.created_at}, {self.updated_at}'
 
 
 class Product(db.Model):
@@ -58,7 +59,7 @@ class Product(db.Model):
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     def __repr__(self):
-        return f'Product {self.description}, {self.unit_price}, {self.quantity}, {self.purchased_at}, {self.updated_at}'
+        return f'Product {self.id}, {self.description}, {self.unit_price}, {self.quantity}, {self.purchased_at}, {self.updated_at}'
 
 #PEP 8 Naming Convention
 class ProductSales(db.Model):
@@ -87,7 +88,5 @@ class Cost(db.Model):
     #foreign key to define relationship between product and associated costs
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
 
-
-
-
-
+    def __repr__(self):
+        return f'Cost {self.id}, {self.marketing_cost}, {self.shipping_cost}, {self.packaging_cost}, {self.product_id}'
