@@ -4,6 +4,8 @@ This module defines the routes for the Flask application and serves as the entry
 from flask import make_response
 from config import app  # Import the app from config.py
 
+
+# import Flask login to handle user authentication and authorization.
 # Example route
 
 
