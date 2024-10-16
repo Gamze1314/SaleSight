@@ -14,8 +14,6 @@ from sqlalchemy.ext.associationproxy import association_proxy
 #User has many profits
 #Profit belongs to User
 #Profit belongs to a product.(one-to-many)
-#profit belongs to a sale.(one-to-one)
-
 
 
 # Product has many sales.
@@ -99,7 +97,6 @@ class Product(db.Model):
     sales = db.relationship('ProductSales', back_populates='product')
 
 
-
     def __repr__(self):
         return f'Product {self.id}, {self.description}, {self.unit_price}, {self.quantity}, {self.purchased_at}, {self.updated_at}'
 
@@ -122,6 +119,9 @@ class ProductSales(db.Model):
 
     #ProductSales belongs to a product
     product = db.relationship('Product', back_populates='sales')
+
+    def __repr__(self):
+        return f'ProductSales {self.id}, {self.unit_sales_price}, {self.quantity_sold}, {self.sales_profit_margin}, {self.sale_date}, {self.updated_at}, {self.product_id}'
 
 
 
