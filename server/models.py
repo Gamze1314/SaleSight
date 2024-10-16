@@ -62,8 +62,6 @@ class Profit(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey(
         'products.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    sale_id = db.Column(db.Integer, db.ForeignKey(
-        'product_sales.id'), nullable=False)
     
     #Profit belongs to a user
     user = db.relationship('User', back_populates='profits')
@@ -71,8 +69,6 @@ class Profit(db.Model):
     #Profit belongs to a product
     product = db.relationship('Product', back_populates='profits')
 
-    #Profit belongs to a sale
-    sale = db.relationship('ProductSales', back_populates='profit')
 
     def __repr__(self):
         return f'Profit {self.id}, {self.profit_amount}, {self.margin}, {self.product_id}, {self.user_id}, {self.sales_id}, {self.created_at}, {self.updated_at}'
@@ -127,8 +123,6 @@ class ProductSales(db.Model):
     #ProductSales belongs to a product
     product = db.relationship('Product', back_populates='sales')
 
-    #profit belongs to a sale.(One to One)
-    profit = db.relationship('Profit', back_populates='sale')
 
 
 class Cost(db.Model):
