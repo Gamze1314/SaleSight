@@ -1,5 +1,3 @@
-''' this module generates seed data for the tables.'''
-
 from config import db, app
 from models import User, Product, Profit, ProductSale, Cost
 
@@ -9,8 +7,10 @@ with app.app_context():
     db.create_all()
 
     # create users
-    user1 = User(name='John Doe', username='johndoe', password_hash='password123')
-    user2 = User(name='Jane Smith', username='janesmith', password_hash='password456')
+    user1 = User(name='John Doe', username='johndoe',
+                 password_hash='password123')
+    user2 = User(name='Jane Smith', username='janesmith',
+                 password_hash='password456')
     db.session.add(user1)
     db.session.add(user2)
     db.session.commit()
@@ -22,15 +22,6 @@ with app.app_context():
     db.session.add(product2)
     db.session.commit()
 
-    # create product sales
-    sale1 = ProductSale(unit_sale_price=12.00,
-                        quantity_sold=30, product_id=product1.id)
-    sale2 = ProductSale(unit_sale_price=25.00,
-                        quantity_sold=10, product_id=product2.id)
-    db.session.add(sale1)
-    db.session.add(sale2)
-    db.session.commit()
-
     # create costs
     cost1 = Cost(marketing_cost=100.55, shipping_cost=50.00,
                  packaging_cost=20.15, product_id=product1.id)
@@ -40,27 +31,38 @@ with app.app_context():
     db.session.add(cost2)
     db.session.commit()
 
+    # Desired profit margin
+    desired_margin1 = 52.78  # in percentage for product1
+    desired_margin2 = 46.52 # in percentage for product2
 
-    #profit computation using related sales and costs will happen after Cost and Product Sales created.
+    # Total cost per product (unit value + all costs)
+    total_cost1 = float(product1.unit_value + cost1.marketing_cost + cost1.shipping_cost + cost1.packaging_cost)
+    total_cost2 = float(product2.unit_value + cost2.marketing_cost + cost2.shipping_cost + cost2.packaging_cost)
 
-    # calculate profit amount by margin.
-    # Profit Amount = Sale Price × (Profit Margin ÷ 100)
-   # Sale Price = Cost Price × (1 + Profit Margin ÷ 100)
-   # Profit Margin = (Profit Amount ÷ Sale Price) × 100
+    # Sale price based on desired margin
+    sale_price1 = round(total_cost1 * float((1 + desired_margin1 / 100)), 2)
+    sale_price2 = round(total_cost2 * float((1 + desired_margin2 / 100)), 2)
 
-    # calculate profit_amount and margin based on costs and sales revenue.
-    # For product1
-    total_sales1 = sale1.unit_sale_price * sale1.quantity_sold  # 12 * 30 = 360
-    total_costs1 = cost1.marketing_cost + cost1.shipping_cost + cost1.packaging_cost # 100 + 50 + 20 = 170
-    profit_amount1 = total_sales1 - total_costs1  # 360 - 170 = 190
-    margin1 = (profit_amount1 / total_sales1) * \
-        100  # (190 / 360) * 100 = 52.78%
+    # create product sales
+    sale1 = ProductSale(unit_sale_price=sale_price1,
+                        quantity_sold=30, product_id=product1.id)
+    sale2 = ProductSale(unit_sale_price=sale_price2,
+                        quantity_sold=10, product_id=product2.id)
+    db.session.add(sale1)
+    db.session.add(sale2)
+    db.session.commit()
 
-    # For product2
-    total_sales2 = sale2.unit_sale_price * sale2.quantity_sold  # 25 * 10 = 250
-    total_costs2 = cost2.marketing_cost + cost2.shipping_cost + cost2.packaging_cost  # 80 + 40 + 15 = 135
-    profit_amount2 = total_sales2 - total_costs2  # 250 - 135 = 115
-    margin2 = (profit_amount2 / total_sales2) * 100  # (115 / 250) * 100 = 46%
+    # Calculate profit based on sales revenue and costs
+    total_sales1 = float(sale1.unit_sale_price * sale1.quantity_sold)  # Revenue from sales
+    total_sales2 = float(sale2.unit_sale_price * sale2.quantity_sold)  # Revenue from sales
+
+    profit_amount1 = total_sales1 - total_cost1  # Profit for product1
+    profit_amount2 = total_sales2 - total_cost2  # Profit for product2
+
+    margin1 = round((profit_amount1 / total_sales1) *
+                    100, 2)  # Final margin for product1
+    margin2 = round((profit_amount2 / total_sales2) *
+                    100, 2)  # Final margin for product2
 
     # create profits for products
     profit1 = Profit(profit_amount=profit_amount1, margin=margin1,
@@ -72,4 +74,9 @@ with app.app_context():
     db.session.commit()
 
     print("Seed data created successfully.")
+
+
+    # product unit value + all costs = total cost.
+    # sales price = total cost + profit
+    # profit margin = (profit / sales price) * 100
 

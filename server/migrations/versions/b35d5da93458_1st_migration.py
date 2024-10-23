@@ -1,8 +1,8 @@
-"""initial migration
+"""1st migration
 
-Revision ID: 3315c1bc4230
+Revision ID: b35d5da93458
 Revises: 
-Create Date: 2024-10-23 12:36:00.283866
+Create Date: 2024-10-23 16:43:31.069465
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3315c1bc4230'
+revision = 'b35d5da93458'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -50,7 +50,6 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('unit_sale_price', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('quantity_sold', sa.Integer(), nullable=False),
-    sa.Column('sale_profit_margin', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('sale_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=False),
@@ -60,7 +59,7 @@ def upgrade():
     op.create_table('profits',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('profit_amount', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('margin', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('margin', sa.Numeric(precision=5, scale=2), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=False),
