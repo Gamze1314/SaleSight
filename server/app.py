@@ -3,7 +3,7 @@ This module defines the routes for the Flask application and serves as the entry
 """
 from flask import make_response
 from config import app  # Import the app from config.py
-from models import User, Product, Profit, ProductSales, Cost
+from models import User, Product, Profit, ProductSale, Cost
 
 
 # import Flask login to handle user authentication and authorization.
