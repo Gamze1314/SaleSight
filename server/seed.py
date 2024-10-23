@@ -1,6 +1,9 @@
 from config import db, app
 from models import User, Product, Profit, ProductSale, Cost
 from decimal import Decimal
+from helpers import total_revenue_for_sale, profit_by_product, calculate_profit_margin
+
+
 
 # app context
 with app.app_context():
@@ -62,22 +65,22 @@ with app.app_context():
                         quantity_sold=30, product_id=product1.id)
     sale2 = ProductSale(unit_sale_price=sale_price2,
                         quantity_sold=10, product_id=product2.id)
-    db.session.add(sale1)
-    db.session.add(sale2)
+    
+    sale_list = [sale1, sale2]
+    print(sale_list)
+    db.session.add_all(sale_list)
     db.session.commit()
 
-    # Calculate profit based on sales revenue and costs
-    total_sales1 = sale1.unit_sale_price * sale1.quantity_sold # Revenue from sales
-    total_sales2 = sale2.unit_sale_price * sale2.quantity_sold # Revenue from sales
+# Calculate total revenue for the sale using the imported function
+    revenue1 = total_revenue_for_sale(sale1.unit_sale_price, sale1.quantity_sold)
+    revenue2 = total_revenue_for_sale(sale2.unit_sale_price, sale2.quantity_sold)
 
-    profit_amount1 = total_sales1 - total_cost1  # Profit for product1
-    profit_amount2 = total_sales2 - total_cost2  # Profit for product2
+    profit_amount1 = profit_by_product(revenue1, total_cost1)  # Profit for product1
+    profit_amount2 = profit_by_product(revenue2, total_cost2)  # Profit for product2
     print(type(profit_amount1), "profit") # decimal
 
-    margin1 = round((profit_amount1 / total_sales1) *
-                    100, 2)  # Final margin for product1
-    margin2 = round((profit_amount2 / total_sales2) *
-                    100, 2)  # Final margin for product2
+    margin1 = calculate_profit_margin(profit_amount1, revenue1)
+    margin2 = calculate_profit_margin(profit_amount2, revenue2)
     
     print(type(margin1), "margin")
 

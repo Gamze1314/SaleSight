@@ -230,7 +230,7 @@ class ProductSale(db.Model, SerializerMixin):
         return self.total_revenue - total_cost
 
     def __repr__(self):
-        return f'ProductSales {self.id}, {self.unit_sales_price}, {self.quantity_sold}, {self.sale_date}, {self.updated_at}, {self.product_id}'
+        return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold}, {self.sale_date}, {self.updated_at}, {self.product_id}'
 
 
 class Cost(db.Model, SerializerMixin):
