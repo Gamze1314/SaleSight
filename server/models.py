@@ -191,10 +191,24 @@ class ProductSale(db.Model, SerializerMixin):
         return value
     
     #sales price needs to be validated after the product is loaded.
+
     @validates('unit_sale_price')
     def validate_unit_sale_price(self, key, value):
+        # Check if the value is already a Decimal
+        if not isinstance(value, Decimal):
+            try:
+                value = Decimal(value)  # Convert to Decimal
+            except (InvalidOperation, ValueError):
+                raise ValueError(f'{key} must be a valid decimal number.')
+
+        # Check for exactly 2 decimal places
+        if value != value.quantize(Decimal('0.01')):
+            raise ValueError(f'{key} must have exactly 2 decimal places.')
+
+        # value is a positive number ?
         if value < 0:
-            raise ValueError('Sale price should be a positive number.')
+            raise ValueError(f'{key} must be a positive number.')
+
         return value
 
     # calculate total revenue
