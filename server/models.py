@@ -7,9 +7,8 @@ from sqlalchemy.ext.associationproxy import association_proxy
 # import re
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
+from decimal import Decimal, InvalidOperation
 
-
-# relationships
 # User has many products through Profit(Many-to-Many)
 # Product has many users through Profit(multiple users can own or access to products.)
 # User has many profits
@@ -21,11 +20,6 @@ from sqlalchemy import select, func
 
 # Product has many costs (One-to-many)
 # Cost belongs to a product.
-
-
-# validations and constraints
-
-# serialization rules.-done=> debug, test in flask shell.
 
 
 class User(db.Model, SerializerMixin):
@@ -96,19 +90,23 @@ class Profit(db.Model, SerializerMixin):
     @validates('profit_amount')
     def validate_profit_amount(self, key, value):
         # Ensure the value is a Decimal and has at most 2 decimal places
-        if isinstance(value, float):
-            value = round(value, 2)
-        # Convert value to string and check for the decimal precision
-        str_value = f'{value:.2f}'
-        if '.' in str_value and len(str_value.split('.')[-1]) > 2:
+        if not isinstance(value, Decimal):
+            try:
+                value = Decimal(value)  # Convert to Decimal
+            except (InvalidOperation, ValueError):
+                raise ValueError(f'{key} must be a valid decimal number.')
+            
+        # Check for at most 2 decimal places
+        if value.quantize(Decimal('0.01')) != value:
             raise ValueError(f'{key} must have exactly 2 decimal places.')
+
         return value
     
     #validate profit margin
     @validates('margin')
     def validate_margin(self, key, value):
         # Ensure the value is a Decimal and has at most 2 decimal places
-        if isinstance(value, float):
+        if isinstance(value, Decimal):
             value = round(value, 2)
         # Convert value to string and check for the decimal precision
         str_value = f'{value:.2f}'
@@ -246,10 +244,9 @@ class Cost(db.Model, SerializerMixin):
 
     @hybrid_property
     def total_cost(self):
-        #type of float.
         total_cost = sum([cost.marketing_cost + cost.shipping_cost +
                          cost.packaging_cost for cost in self.product.cost])
-        return float(total_cost)
+        return Decimal(total_cost)
 
     def __repr__(self):
         return f'Cost {self.id}, {self.marketing_cost}, {self.shipping_cost}, {self.packaging_cost}, {self.product_id}, {self.total_cost}'

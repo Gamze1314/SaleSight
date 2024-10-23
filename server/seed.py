@@ -1,5 +1,6 @@
 from config import db, app
 from models import User, Product, Profit, ProductSale, Cost
+from decimal import Decimal
 
 # app context
 with app.app_context():
@@ -31,17 +32,30 @@ with app.app_context():
     db.session.add(cost2)
     db.session.commit()
 
+    print(type(cost1.marketing_cost), "cost example")
+
     # Desired profit margin
-    desired_margin1 = 52.78  # in percentage for product1
-    desired_margin2 = 46.52 # in percentage for product2
+    desired_margin1 = Decimal('52.78') 
+    desired_margin2 = Decimal('46.52')
 
     # Total cost per product (unit value + all costs)
-    total_cost1 = float(product1.unit_value + cost1.marketing_cost + cost1.shipping_cost + cost1.packaging_cost)
-    total_cost2 = float(product2.unit_value + cost2.marketing_cost + cost2.shipping_cost + cost2.packaging_cost)
+    #decimal
+    total_cost1 = Decimal(product1.unit_value) + \
+                Decimal(cost1.marketing_cost) + \
+                Decimal(cost1.shipping_cost) + \
+                Decimal(cost1.packaging_cost)
+
+    total_cost2 = Decimal(product2.unit_value) + \
+                Decimal(cost2.marketing_cost) + \
+                Decimal(cost2.shipping_cost) + \
+                Decimal(cost2.packaging_cost)
 
     # Sale price based on desired margin
-    sale_price1 = round(total_cost1 * float((1 + desired_margin1 / 100)), 2)
-    sale_price2 = round(total_cost2 * float((1 + desired_margin2 / 100)), 2)
+    #decimal rounded
+    sale_price1 = round(
+        total_cost1 * (Decimal(1) + (desired_margin1 / Decimal(100))), 2)
+    sale_price2 = round(
+        total_cost2 * (Decimal(1) + (desired_margin2 / Decimal(100))), 2)
 
     # create product sales
     sale1 = ProductSale(unit_sale_price=sale_price1,
@@ -53,16 +67,19 @@ with app.app_context():
     db.session.commit()
 
     # Calculate profit based on sales revenue and costs
-    total_sales1 = float(sale1.unit_sale_price * sale1.quantity_sold)  # Revenue from sales
-    total_sales2 = float(sale2.unit_sale_price * sale2.quantity_sold)  # Revenue from sales
+    total_sales1 = sale1.unit_sale_price * sale1.quantity_sold # Revenue from sales
+    total_sales2 = sale2.unit_sale_price * sale2.quantity_sold # Revenue from sales
 
     profit_amount1 = total_sales1 - total_cost1  # Profit for product1
     profit_amount2 = total_sales2 - total_cost2  # Profit for product2
+    print(type(profit_amount1), "profit") # decimal
 
     margin1 = round((profit_amount1 / total_sales1) *
                     100, 2)  # Final margin for product1
     margin2 = round((profit_amount2 / total_sales2) *
                     100, 2)  # Final margin for product2
+    
+    print(type(margin1), "margin")
 
     # create profits for products
     profit1 = Profit(profit_amount=profit_amount1, margin=margin1,
