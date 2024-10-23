@@ -237,6 +237,13 @@ class Cost(db.Model, SerializerMixin):
     # Cost belongs to a product
     product = db.relationship('Product', back_populates='costs')
 
+    #validate costs
+    @validates('marketing_cost','shipping_cost', 'packaging_cost')
+    def validate_costs(self, key, value):
+        if value < 0:
+            raise ValueError(f'{key} cost should be a positive number.')
+        return value
+
     @hybrid_property
     def total_cost(self):
         #type of float.
