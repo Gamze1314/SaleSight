@@ -4,16 +4,15 @@ from decimal import Decimal
 from helpers import total_revenue_for_sale, profit_by_product, calculate_profit_margin
 
 
-
 # app context
 with app.app_context():
     db.drop_all()
     db.create_all()
 
     # create users
-    user1 = User(name='John Doe', username='johndoe',
+    user1 = User(name='John Doe', email='john@gmail.com', username='johndoe',
                  password_hash='password123')
-    user2 = User(name='Jane Smith', username='janesmith',
+    user2 = User(name='Jane Smith', email='jane@gmail.com', username='janesmith',
                  password_hash='password456')
     db.session.add(user1)
     db.session.add(user2)
@@ -38,23 +37,23 @@ with app.app_context():
     print(type(cost1.marketing_cost), "cost example")
 
     # Desired profit margin
-    desired_margin1 = Decimal('52.78') 
+    desired_margin1 = Decimal('52.78')
     desired_margin2 = Decimal('46.52')
 
     # Total cost per product (unit value + all costs)
-    #decimal
+    # decimal
     total_cost1 = Decimal(product1.unit_value) + \
-                Decimal(cost1.marketing_cost) + \
-                Decimal(cost1.shipping_cost) + \
-                Decimal(cost1.packaging_cost)
+        Decimal(cost1.marketing_cost) + \
+        Decimal(cost1.shipping_cost) + \
+        Decimal(cost1.packaging_cost)
 
     total_cost2 = Decimal(product2.unit_value) + \
-                Decimal(cost2.marketing_cost) + \
-                Decimal(cost2.shipping_cost) + \
-                Decimal(cost2.packaging_cost)
+        Decimal(cost2.marketing_cost) + \
+        Decimal(cost2.shipping_cost) + \
+        Decimal(cost2.packaging_cost)
 
     # Sale price based on desired margin
-    #decimal rounded
+    # decimal rounded
     sale_price1 = round(
         total_cost1 * (Decimal(1) + (desired_margin1 / Decimal(100))), 2)
     sale_price2 = round(
@@ -65,23 +64,27 @@ with app.app_context():
                         quantity_sold=30, product_id=product1.id)
     sale2 = ProductSale(unit_sale_price=sale_price2,
                         quantity_sold=10, product_id=product2.id)
-    
+
     sale_list = [sale1, sale2]
     print(sale_list)
     db.session.add_all(sale_list)
     db.session.commit()
 
 # Calculate total revenue for the sale using the imported function
-    revenue1 = total_revenue_for_sale(sale1.unit_sale_price, sale1.quantity_sold)
-    revenue2 = total_revenue_for_sale(sale2.unit_sale_price, sale2.quantity_sold)
+    revenue1 = total_revenue_for_sale(
+        sale1.unit_sale_price, sale1.quantity_sold)
+    revenue2 = total_revenue_for_sale(
+        sale2.unit_sale_price, sale2.quantity_sold)
 
-    profit_amount1 = profit_by_product(revenue1, total_cost1)  # Profit for product1
-    profit_amount2 = profit_by_product(revenue2, total_cost2)  # Profit for product2
-    print(type(profit_amount1), "profit") # decimal
+    profit_amount1 = profit_by_product(
+        revenue1, total_cost1)  # Profit for product1
+    profit_amount2 = profit_by_product(
+        revenue2, total_cost2)  # Profit for product2
+    print(type(profit_amount1), "profit")  # decimal
 
     margin1 = calculate_profit_margin(profit_amount1, revenue1)
     margin2 = calculate_profit_margin(profit_amount2, revenue2)
-    
+
     print(type(margin1), "margin")
 
     # create profits for products
@@ -95,8 +98,6 @@ with app.app_context():
 
     print("Seed data created successfully.")
 
-
     # product unit value + all costs = total cost.
     # sales price = total cost + profit
     # profit margin = (profit / sales price) * 100
-
