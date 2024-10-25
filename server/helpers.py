@@ -34,6 +34,9 @@ def profit_by_product(revenue, total_cost):
     return profit_amount.quantize(Decimal('0.01'))
 
 
+#case; if profit is 0. or less than 0. ?
+# item is returned or loss.
+
 def calculate_profit_margin(profit_amount, revenue):
     """
     Calculate the profit margin given the profit amount and revenue.
