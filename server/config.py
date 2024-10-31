@@ -9,8 +9,9 @@ from flask_migrate import Migrate
 from flask_restful import Api
 import os
 # from datetime import timedelta
-from dotenv import load_dotenv
-load_dotenv()
+# from dotenv import load_dotenv
+# load_dotenv()
+import secrets
 
 
 # Instantiates app, set attributes
@@ -21,9 +22,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-print(os.environ.get('SECRET_KEY'))
 # Retrieves SECRET_KEY from the environment variable
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') # does not load.
+app.config['SECRET_KEY'] = secrets.token_hex(16)
 # app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 # Defines metadata, instantiate db
