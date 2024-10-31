@@ -14,6 +14,7 @@ import LogInNavBar from "../components/LogInNavBar";
 import pie from "../assets/pie.png";
 import profit from "../assets/profit.png";
 import revenue from "../assets/revenue.png";
+import data from "../assets/data.png";
 
 function About() {
   const [message, setMessage] = useState("");
@@ -61,6 +62,11 @@ function About() {
                 to simplify your sales management and boost profit optimization,
                 making growth easier than ever.
               </p>
+              <p className="text-gray-600 text-center text-xl w-full max-w-5xl mt-6 p-4">
+                And we believe in numbers, which drive our insights and
+                decisions.
+              </p>
+              <img src={data} alt="data" className="h-20 ml-4" />
             </>
           )}
         </div>
