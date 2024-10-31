@@ -22,6 +22,8 @@ import re
 # Product has many costs (One-to-many)
 # Cost belongs to a product.
 
+# cascade- delete orphan.
+
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'

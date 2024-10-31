@@ -1,4 +1,4 @@
-from config import db, app
+from config import db, app, flask_bcrypt
 from models import User, Product, Profit, ProductSale, Cost
 from decimal import Decimal
 from helpers import total_revenue_for_sale, profit_by_product, calculate_profit_margin
@@ -9,11 +9,14 @@ with app.app_context():
     db.drop_all()
     db.create_all()
 
-    # create users
+    # create users, generate password hash and save into db.
+    pw1_hash = flask_bcrypt.generate_password_hash('password123')
+    pw2_hash = flask_bcrypt.generate_password_hash('password456')
+    
     user1 = User(name='John Doe', email='john@gmail.com', username='johndoe',
-                 password_hash='password123')
+                 password_hash=pw1_hash)
     user2 = User(name='Jane Smith', email='jane@gmail.com', username='janesmith',
-                 password_hash='password456')
+                 password_hash=pw2_hash)
     db.session.add(user1)
     db.session.add(user2)
     db.session.commit()
