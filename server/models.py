@@ -45,7 +45,7 @@ class User(db.Model, SerializerMixin):
     )
 
     # User has many profits
-    profits = db.relationship('Profit', back_populates='user')
+    profits = db.relationship('Profit', back_populates='user', cascade='all, delete-orphan')
 
     # User has many Products through Profit.
     products = association_proxy(
@@ -162,17 +162,20 @@ class Product(db.Model, SerializerMixin):
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
     # Product has many profits
-    profits = db.relationship('Profit', back_populates='product')
+    profits = db.relationship(
+        'Profit', back_populates='product', cascade='all, delete-orphan')
 
     # Product has many users through Profit.
     users = association_proxy(
         'profits', 'user', creator=lambda p: Profit(product=p))
 
     # Product has many costs (One-to-many)
-    costs = db.relationship('Cost', back_populates='product')
+    costs = db.relationship(
+        'Cost', back_populates='product', cascade='all, delete-orphan')
 
     # Product has many sales (One-to-many)
-    sales = db.relationship('ProductSale', back_populates='product')
+    sales = db.relationship(
+        'ProductSale', back_populates='product', cascade='all, delete-orphan')
 
     # validate description
     @validates('description')
