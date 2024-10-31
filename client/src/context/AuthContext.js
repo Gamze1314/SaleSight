@@ -63,7 +63,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  console.log(error);
+  console.log(isAuthenticated) // sets true after login.
+  console.log(currentUser)
 
   // /signup 
   const signup = async (username, password, name, email) => {

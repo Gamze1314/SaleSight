@@ -4,6 +4,8 @@ import App from "./App";
 import Authentication from "./pages/Authentication";
 import ErrorPage from "./pages/ErrorPage";
 import About from "./pages/About";
+import ProtectedRoute from "./ProtectedRoute";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -36,6 +38,11 @@ const router = createBrowserRouter([
     path: "/about",
     element: <About />, // Renders About page
   },
+  {
+    path: "/analytics",
+    element: <ProtectedRoute element={<AnalyticsPage />} />,
+  },
+  // add /products protected route.
   {
     path: "*", // Catch-all for unmatched routes
     element: <ErrorPage />,
