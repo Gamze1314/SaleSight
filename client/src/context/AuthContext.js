@@ -1,4 +1,5 @@
 import React, { useState, useEffect, createContext  } from "react";
+import { useNavigate } from 'react-router-dom'
 
 export const AuthContext = createContext(null); // Initial value null
 
@@ -8,6 +9,8 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState(null); // Error state
+  const navigate = useNavigate(); // 
+ 
 
   // Check session on mount
   useEffect(() => {
@@ -18,6 +21,7 @@ export const AuthProvider = ({ children }) => {
           const user = await response.json();
           setCurrentUser(user);
           setIsAuthenticated(true);
+          navigate("/analytics");
           setError(""); // Clear any previous error
         }
       } catch (err) {
@@ -48,6 +52,7 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         setCurrentUser(data);
         setIsAuthenticated(true);
+        navigate('/analytics')
         setError(""); // Clear any previous error
       } else {
         const errorData = await response.json();
@@ -79,7 +84,9 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         setCurrentUser(data);
-        setIsAuthenticated(true)
+        setIsAuthenticated(true);
+        // navigate to products page or another.
+        // navigate("/analytics");
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to sign up");
@@ -97,6 +104,8 @@ export const AuthProvider = ({ children }) => {
         method: "DELETE",
       });
       setCurrentUser(null);
+      setIsAuthenticated(false); // Reset authentication state
+      // navigate("/login"); // Navigate to login page after logout
     } catch (err) {
       setError("Failed to log out");
       console.error(err);

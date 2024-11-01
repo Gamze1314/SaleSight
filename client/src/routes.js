@@ -6,45 +6,48 @@ import ErrorPage from "./pages/ErrorPage";
 import About from "./pages/About";
 import ProtectedRoute from "./ProtectedRoute";
 import AnalyticsPage from "./pages/AnalyticsPage";
+import { AuthProvider } from "./context/AuthContext";
 
 // Create router configuration
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/authentication" replace />, // Redirect root to /authentication
-  },
-  {
-    path: "/authentication",
-    element: <App />, // Render App component at /authentication
+    element: (
+      <AuthProvider>
+        <App /> {/* Wrap App with AuthProvider */}
+      </AuthProvider>
+    ),
     errorElement: <ErrorPage />,
     children: [
       {
-        index: true, // Default child route for App at /authentication
-        element: <Authentication />, // Renders Authentication inside App
+        path: "/",
+        element: <Navigate to="/login" replace />, // Redirect to login if not authenticated
+      },
+      {
+        path: "login",
+        element: <Authentication />,
+      },
+      {
+        path: "signup",
+        element: <Authentication />,
+      },
+      {
+        path: "about",
+        element: <About />,
+      },
+      {
+        element: <ProtectedRoute />, // Wrap protected routes with ProtectedRoute
+        children: [
+          {
+            path: "analytics",
+            element: <AnalyticsPage />,
+          },
+        ],
       },
     ],
   },
   {
-    // signup page '/signup' => authentication
-    path: "/signup",
-    element: <Authentication />, // Renders Authentication inside App
-  },
-  // login page '/login' => authentication
-  {
-    path: "/login",
-    element: <Authentication />, // Renders Authentication inside App
-  },
-  {
-    path: "/about",
-    element: <About />, // Renders About page
-  },
-  {
-    path: "/analytics",
-    element: <ProtectedRoute element={<AnalyticsPage />} />,
-  },
-  // add /products protected route.
-  {
-    path: "*", // Catch-all for unmatched routes
+    path: "*",
     element: <ErrorPage />,
   },
 ]);

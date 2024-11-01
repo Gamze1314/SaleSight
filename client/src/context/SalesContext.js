@@ -1,7 +1,4 @@
-// wraps AnalyticsPage.js  if user is Authenticated.
-//  export AnalyticsContextProvider
-// context for sale(revenue), cost, and profit.
-//  /profit , /cost, /sale GET requests for the authenticated user.
+//  /sale GET request. updates state.
 
 import React, { useState , useEffect, createContext } from 'react';
 

@@ -4,13 +4,12 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa"; // Import icons
 
 function Authentication() {
   const { login, error, signup } = useContext(AuthContext);
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [formType, setFormType] = useState(
     location.pathname === "/signup" ? "signup" : "login"
@@ -44,8 +43,6 @@ function Authentication() {
       if (formType === "signup") {
         signup(values.username, values.password, values.name, values.email);
         formik.resetForm();
-        // navigate to home page or another.
-        navigate("/login");
       } else {
         login(values.username, values.password);
         formik.resetForm();
