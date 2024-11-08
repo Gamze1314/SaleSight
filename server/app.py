@@ -2,7 +2,7 @@
 This module defines the routes for the Flask application and serves as the entry point.
 """
 from flask import Flask, make_response, request,  abort, session, jsonify
-from config import db, app , api , flask_bcrypt
+from config import db, app, api, flask_bcrypt
 from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost
 from werkzeug.exceptions import NotFound, Unauthorized
@@ -12,14 +12,7 @@ from werkzeug.exceptions import NotFound, Unauthorized
 # print(pw_hash)
 
 
-@app.errorhandler(NotFound)
-def handle_not_found(e):
-    response = make_response("Not Found: The resource you are looking for does not exist", 404)
-    return response
-
-#seperate sign up , login and logout resources.
-
-
+# seperate sign up , login and logout resources.
 class CheckSession(Resource):
     def get(self):
         user_id = session.get('user_id')
@@ -37,7 +30,7 @@ api.add_resource(CheckSession, '/check_session')
 
 class SignUp(Resource):
     def post(self):
-        #request.get_json() => get signup info
+        # request.get_json() => get signup info
         try:
             data = request.get_json()
             name = data['name']
@@ -48,8 +41,8 @@ class SignUp(Resource):
             # Check if user already exists
             if User.query.filter_by(username=username).first():
                 abort(400, 'Username already exists')
-            
-            #check email already exists
+
+            # check email already exists
             if User.query.filter_by(email=email).first():
                 abort(400, 'Email already exists')
 
@@ -60,19 +53,19 @@ class SignUp(Resource):
             # Hash the password
             hashed_password = flask_bcrypt.generate_password_hash(
                 password).decode('utf-8')
-            
+
             # create new user for sign up
             new_user = User(name=name, email=email,
                             username=username, password_hash=hashed_password)
-            
+
             db.session.add(new_user)
             db.session.commit()
 
             # log the user in automatically
-            session['user_id'] = new_user.id # => adds the id into session.
+            session['user_id'] = new_user.id  # => adds the id into session.
             # make a response with new user serialized and return 201 status code.
             return make_response(new_user.to_dict(), 201)
-        
+
         except ValueError as e:
             # Handle any unexpected errors
             db.session.rollback()
@@ -82,6 +75,8 @@ class SignUp(Resource):
 api.add_resource(SignUp, '/signup')
 
 # Login Resource
+
+
 class Login(Resource):
     def post(self):
         try:
@@ -125,33 +120,92 @@ class LogOut(Resource):
         else:
             abort(400, "No user currently logged in")
 
+
 api.add_resource(LogOut, '/logout')
 
 
-@app.route('/')
-def index():
-    return make_response('This is SalesSight API', 200)
-
 # Define other routes here
 
-#below resources rturned data serialized with all product, sales, profit, user and cost information.
+# below resources rturned data serialized with all product, sales, profit, user and cost information.
 
-@app.route('/profits')
-def profits():
-    profits = Profit.query.all()
-    return make_response([profit.to_dict() for profit in profits], 200)
-
-
-@app.route('/products')
-def product():
-    products = Product.query.all()
-    return make_response([product.to_dict() for product in products], 200)
+# @app.route('/profits')
+# def profits():
+#     profits = Profit.query.all()
+#     return make_response([profit.to_dict() for profit in profits], 200)
 
 
-@app.route('/sales')
-def sales():
-    sales = ProductSale.query.all()
-    return make_response([sale.to_dict() for sale in sales], 200)
+# @app.route('/products')
+# def product():
+#     products = Product.query.all()
+#     return make_response([product.to_dict() for product in products], 200)
+
+
+# @app.route('/sales')
+# def sales():
+#     sales = ProductSale.query.all()
+# return make_response([sale.to_dict() for sale in sales], 200)
+
+
+# Resources for sales, costs, and profits.
+class Sales(Resource):
+    # returns all sales, revenue, and product data for authenticated user.
+    def get(self):
+        # Get user_id from the session.
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+
+        # GET ALL THE SALES FOR THIS USER.
+        sales = ProductSale.query.all()
+
+        # revenue = sum(quantity * unit sales price) => hybrid property
+        response_body = [sale.to_dict() for sale in sales]
+
+        return make_response(response_body, 200)
+
+
+api.add_resource(Sales, '/product_sales')
+
+
+class Profits(Resource):
+    # returns all profits for the products of authenticated user
+    def get(self):
+        # Get user_id from the session.
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+        
+        #Get all profit data for the sales
+        profit_data = Profit.query.all()
+
+        response_body = [p.to_dict() for p in profit_data]
+
+        return make_response(response_body, 200)
+
+
+api.add_resource(Profits, '/profits')
+
+
+
+class Costs(Resource):
+    # returns all costs for the products of authenticated user
+    def get(self):
+        # Get user_id from the session.
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+        
+        #get costs 
+        cost_data = Cost.query.all()
+
+        response_body = [c.to_dict() for c in cost_data]
+
+        return make_response(response_body, 200)
+    
+api.add_resource(Costs, '/costs')
 
 
 

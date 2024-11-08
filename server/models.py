@@ -199,7 +199,7 @@ class Product(db.Model, SerializerMixin):
 class ProductSale(db.Model, SerializerMixin):
     __tablename__ = 'product_sales'
 
-    serialize_rules = ('-product.sales',)
+    serialize_rules = ('-product.sales', 'item_revenue', '-product.costs', '-profits')
 
     id = db.Column(db.Integer, primary_key=True)
     unit_sale_price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -243,9 +243,10 @@ class ProductSale(db.Model, SerializerMixin):
 
         return value
 
-    # calculate total revenue
+    
+    # Define the total revenue
     @hybrid_property
-    def total_revenue(self):
+    def item_revenue(self):
         return self.unit_sale_price * self.quantity_sold
 
     # calculate the profit per product sale( Revenue - profit_margin / 100)
@@ -268,7 +269,7 @@ class ProductSale(db.Model, SerializerMixin):
 class Cost(db.Model, SerializerMixin):
     __tablename__ = 'costs'
 
-    serialize_rules = ('-product.costs',)
+    serialize_rules = ('-product.costs', '-product.profits', '-product.sales', 'total_cost')
 
     id = db.Column(db.Integer, primary_key=True)
     marketing_cost = db.Column(db.Numeric(10, 2), nullable=False)
@@ -290,8 +291,8 @@ class Cost(db.Model, SerializerMixin):
 
     @hybrid_property
     def total_cost(self):
-        total_cost = sum([cost.marketing_cost + cost.shipping_cost +
-                         cost.packaging_cost for cost in self.product.cost])
+        total_cost = sum([self.marketing_cost + self.shipping_cost +
+                         self.packaging_cost])
         return Decimal(total_cost)
 
     def __repr__(self):
