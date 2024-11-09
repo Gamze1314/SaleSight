@@ -47,8 +47,7 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ username, password }),
       });
       if (response.ok) {
-        //waits for Promise to resolve.
-        console.log(response)
+        //wait for Promise to resolve.
         const data = await response.json();
         setCurrentUser(data);
         setIsAuthenticated(true);

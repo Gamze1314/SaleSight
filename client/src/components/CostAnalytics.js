@@ -13,7 +13,6 @@ import {
 import { formatCurrency } from "../utils";
 
 function CostAnalytics() {
-  console.log("Cost Analytics rendered.");
 
   const { costData, error } = useContext(CostContext);
 

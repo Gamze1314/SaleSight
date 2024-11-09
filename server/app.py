@@ -15,9 +15,9 @@ from werkzeug.exceptions import NotFound, Unauthorized
 # seperate sign up , login and logout resources.
 class CheckSession(Resource):
     def get(self):
-        user_id = session.get('user_id')
+        user_id = session['user_id']
         if user_id:
-            user = User.query.get(user_id)
+            user = User.query.filter_by(id=user_id).first()
             if user:
                 return make_response(user.to_dict(), 200)
             else:
@@ -124,34 +124,12 @@ class LogOut(Resource):
 api.add_resource(LogOut, '/logout')
 
 
-# Define other routes here
-
-# below resources rturned data serialized with all product, sales, profit, user and cost information.
-
-# @app.route('/profits')
-# def profits():
-#     profits = Profit.query.all()
-#     return make_response([profit.to_dict() for profit in profits], 200)
-
-
-# @app.route('/products')
-# def product():
-#     products = Product.query.all()
-#     return make_response([product.to_dict() for product in products], 200)
-
-
-# @app.route('/sales')
-# def sales():
-#     sales = ProductSale.query.all()
-# return make_response([sale.to_dict() for sale in sales], 200)
-
-
 # Resources for sales, costs, and profits.
 class Sales(Resource):
     # returns all sales, revenue, and product data for authenticated user.
     def get(self):
         # Get user_id from the session.
-        user_id = session.get("user_id")
+        user_id = session["user_id"]
 
         if not user_id:
             abort(401, "User is not authenticated.")
@@ -172,7 +150,7 @@ class Profits(Resource):
     # returns all profits for the products of authenticated user
     def get(self):
         # Get user_id from the session.
-        user_id = session.get("user_id")
+        user_id = session["user_id"]
 
         if not user_id:
             abort(401, "User is not authenticated.")
@@ -193,7 +171,7 @@ class Costs(Resource):
     # returns all costs for the products of authenticated user
     def get(self):
         # Get user_id from the session.
-        user_id = session.get("user_id")
+        user_id = session["user_id"]
 
         if not user_id:
             abort(401, "User is not authenticated.")

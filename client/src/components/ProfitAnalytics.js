@@ -14,13 +14,12 @@ import {
 import { formatCurrency } from "../utils";
 
 function ProfitAnalytics() {
-  console.log("Profit Analytics rendered.");
 
   // Destructuring the context values
   const { profitsData, error } = useContext(ProfitContext);
 
   // Log the profits data for debugging
-  console.log(profitsData);
+  // console.log(profitsData);
 
   // Error handling: Display error message if there's an issue
   if (error) {
