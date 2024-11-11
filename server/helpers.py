@@ -27,7 +27,6 @@ def total_revenue_for_sale(sale):
     except (InvalidOperation, ValueError):
         raise ValueError(
             "Both unit_sale_price and quantity_sold must be valid numbers.")
-    
 
 
 # helper functions used in seed data.
@@ -36,7 +35,7 @@ def profit_by_product(revenue, total_cost):
     return profit_amount.quantize(Decimal('0.01'))
 
 
-#case; if profit is 0. or less than 0. ?
+# case; if profit is 0. or less than 0. ?
 # item is returned or loss.
 
 def calculate_profit_margin(profit_amount, revenue):
@@ -55,7 +54,6 @@ def calculate_profit_margin(profit_amount, revenue):
 
     margin = (profit_amount / revenue) * 100
     return round(margin, 2)  # Round to 2 decimal places
-
 
 
 def update_profit_amount(product_id):

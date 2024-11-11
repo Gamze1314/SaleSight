@@ -104,7 +104,7 @@ export const AuthProvider = ({ children }) => {
       });
       setCurrentUser(null);
       setIsAuthenticated(false); // Reset authentication state
-      // navigate("/login"); // Navigate to login page after logout
+      navigate("/login"); // Navigate to login page after logout
     } catch (err) {
       setError("Failed to log out");
       console.error(err);

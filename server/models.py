@@ -91,7 +91,7 @@ class User(db.Model, SerializerMixin):
         return value
 
     def __repr__(self):
-        return f'User {self.id}, {self.name} ,{self.username}, {self.password_hash}, {self.created_at}, {self.updated_at}'
+        return f'User {self.id}, {self.name} ,{self.username}, {self.created_at}, {self.updated_at}'
 
 
 class Profit(db.Model, SerializerMixin):
@@ -294,14 +294,13 @@ class ProductSale(db.Model, SerializerMixin):
 
         return value
 
-    # Define the total revenue
+    # Define the revenue for each sale.
     @hybrid_property
     def item_revenue(self):
         # call total revenue for sale function from helpers.py
         return total_revenue_for_sale(self)
 
-    # Calculate net profit (Revenue - Total Costs)
-
+    # Calculates net profit (Revenue - Total Costs)
     @hybrid_property
     def net_profit(self):
         # Calculate the total item revenue for this sale instance

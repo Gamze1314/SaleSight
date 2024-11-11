@@ -1,4 +1,3 @@
-// renders main navbar, headline, and 3 cards for pies and charts to show profit, cost, sale revenue.(total)
 import React from "react";
 import MainNavBar from "../components/MainNavBar";
 import SaleAnalytics from "../components/SaleAnalytics";
@@ -6,9 +5,6 @@ import { ProfitAnalytics } from "../components/ProfitAnalytics";
 import CostAnalytics from "../components/CostAnalytics";
 
 function AnalyticsPage() {
-  console.log("Analytics page rendered");
-  // render Sale, cost and profit analytics, pies, numbers.. in 3 divs aligned vertically. import components.
-
   return (
     <>
       <div>
@@ -32,19 +28,16 @@ function AnalyticsPage() {
 
 export default AnalyticsPage;
 
-
 // Revenue vs Cost Bar Chart
 
 // Shows revenue and costs side by side
 // Easy to compare revenue and cost for each period
-
 
 // Profit Trend Line Chart
 
 // Shows how profit changes over time
 // Good for identifying trends and patterns
 // Smooth line makes it easy to spot growth or decline
-
 
 // Combined Performance Overview
 

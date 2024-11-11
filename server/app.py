@@ -6,6 +6,7 @@ from config import db, app, api, flask_bcrypt
 from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost
 from werkzeug.exceptions import NotFound, Unauthorized
+from helpers import profit_by_product
 
 # pw_hash = flask_bcrypt.generate_password_hash('hunter2')
 # flask_bcrypt.check_password_hash(pw_hash, 'hunter2')  # returns True
@@ -114,7 +115,8 @@ api.add_resource(Login, '/login')
 class LogOut(Resource):
     def delete(self):
         if 'user_id' in session:
-            session.pop('user_id', None)
+            del (session['user_id'])
+            session.clear()  # Clears all session data
             return make_response({'message': 'User logged out successfully'}, 200)
         else:
             abort(400, "No user currently logged in")
@@ -123,29 +125,68 @@ class LogOut(Resource):
 api.add_resource(LogOut, '/logout')
 
 
-# Resources for sales, costs, and profits.
 class Sales(Resource):
-    # returns all sales, revenue, and product data for authenticated user.
+    # Returns all sales, revenue, and product data for authenticated user
     def get(self):
-        # Get user_id from the session.
-        user_id = session["user_id"]
+        # Get user_id from the session
+        user_id = session.get("user_id")
 
         if not user_id:
             abort(401, "User is not authenticated.")
 
-        # GET ALL THE SALES FOR THIS USER.
-        sales = ProductSale.query.all()
+        # Query for the user
+        user = User.query.filter_by(id=user_id).first()
 
-        # revenue = sum(quantity * unit sales price) => hybrid property
-        # total revenue, total cost, and total profit, total items sold.
-        response_body = [sale.to_dict() for sale in sales]
+        if not user:
+            abort(404, "User not found")
+
+        # Retrieve the user's products
+        user_products = user.products
+
+        if not user_products:
+            return make_response({"message": "No products found for this user."}, 404)
+
+        # Initialize a response list to hold data for each product
+        products_data = []
+
+        for product in user_products:
+            # Get all sales and costs related to this product
+            sales = ProductSale.query.filter_by(product_id=product.id).all()
+            costs = Cost.query.filter_by(product_id=product.id).all()
+
+            # Serialize sales and costs data using only specific fields
+            sale_array = [
+                sale.to_dict(only=("id", "sale_date", "quantity_sold",
+                             "unit_sale_price", "item_revenue", "net_profit", "updated_at"))
+                for sale in sales
+            ]
+
+            cost_array = [
+                cost.to_dict(only=("id", "item_cost"))
+                for cost in costs
+            ]
+
+            # Structure data for each product with only the needed fields
+            product_data = product.to_dict(
+                only=("id", "description", "unit_value", "quantity", "purchased_at"))
+            product_data.update({"sales": sale_array, "costs": cost_array})
+
+            products_data.append(product_data)
+
+        # Define final response body with user and products data, selecting only specific fields for the user
+            response_body = [
+                user.to_dict(only=("id", "username", "name")),
+                *products_data  # Expanding products_data directly into the array
+            ]
 
         return make_response(response_body, 200)
 
 
+# Add the resource to the API
 api.add_resource(Sales, '/product_sales')
 
 
+# user_id, product_id
 class Profits(Resource):
     # returns all profits for the products of authenticated user
     def get(self):
@@ -154,9 +195,9 @@ class Profits(Resource):
 
         if not user_id:
             abort(401, "User is not authenticated.")
-        
-        #Get all profit data for the sales
-        profit_data = Profit.query.all()
+
+        # Get all profit data for the sales
+        profit_data = Profit.query.filter_by(user_id=user_id).all()
 
         response_body = [p.to_dict() for p in profit_data]
 
@@ -164,27 +205,6 @@ class Profits(Resource):
 
 
 api.add_resource(Profits, '/profits')
-
-
-
-class Costs(Resource):
-    # returns all costs for the products of authenticated user
-    def get(self):
-        # Get user_id from the session.
-        user_id = session["user_id"]
-
-        if not user_id:
-            abort(401, "User is not authenticated.")
-        
-        #get costs 
-        cost_data = Cost.query.all()
-
-        response_body = [c.to_dict() for c in cost_data]
-
-        return make_response(response_body, 200)
-    
-api.add_resource(Costs, '/costs')
-
 
 
 # this script runs the app

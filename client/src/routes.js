@@ -9,7 +9,6 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import { AuthProvider } from "./context/AuthContext";
 import { SalesProvider } from "./context/SalesContext";
 import { ProfitProvider } from "./context/ProfitContext";
-import { CostProvider } from "./context/CostContext";
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -44,13 +43,11 @@ const router = createBrowserRouter([
           {
             path: "analytics",
             element: (
-              <CostProvider>
                 <ProfitProvider>
                   <SalesProvider>
                     <AnalyticsPage /> {/* Wrap App with AuthProvider */}
                   </SalesProvider>
                 </ProfitProvider>
-              </CostProvider>
             ),
           },
         ],

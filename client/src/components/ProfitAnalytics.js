@@ -29,6 +29,8 @@ function ProfitAnalytics() {
       })
     ) || [];
 
+    console.log(processedData)
+
   const firstRecord = processedData[0] || {};
 
   return (

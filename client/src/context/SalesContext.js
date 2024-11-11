@@ -28,6 +28,9 @@ export const SalesProvider = ({ children }) => {
     fetchSalesData();
   }, []);
 
+  console.log(salesData)
+
+
   // Function to clear the error state
   const clearError = () => {
     setError(null);

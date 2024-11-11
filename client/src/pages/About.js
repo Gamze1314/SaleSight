@@ -1,12 +1,7 @@
 // this page will explain what SaleSight offers to users.
-// no need to be authenticated (unprotected route)
+// (unprotected route)
 // renders LogInNavBar and key points.
 
-// p tag or main to explain what SaleSight offers to users.
-// 3 DIVS ALIGNED horizontally : Key Points; sale Insight, Profit Optimization and Real Time Revenue Management 
-
-
-// box shadow, box inside of div and image . 
 import React, { useState, useEffect } from "react";
 import LogInNavBar from "../components/LogInNavBar";
 
@@ -132,6 +127,3 @@ function About() {
 }
 
 export default About;
-
-
-

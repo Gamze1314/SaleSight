@@ -1,6 +1,8 @@
 """
 This module contains configurations for the Flask API.
 """
+from dotenv import load_dotenv  # take environment variables from .env.
+load_dotenv()
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from sqlalchemy import MetaData
@@ -9,9 +11,6 @@ from flask_migrate import Migrate
 from flask_restful import Api
 import os
 # from datetime import timedelta
-# from dotenv import load_dotenv
-# load_dotenv()
-import secrets
 
 
 # Instantiates app, set attributes
@@ -22,9 +21,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.json.compact = False
 
-# Retrieves SECRET_KEY from the environment variable
-app.config['SECRET_KEY'] = secrets.token_hex(16)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+print(f"SECRET_KEY from .env: {app.config['SECRET_KEY']}")
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # Better security for the cookie
 # app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
+
 
 # Defines metadata, instantiate db
 # contains definitions of tables and associated schema constructs for db readability.
