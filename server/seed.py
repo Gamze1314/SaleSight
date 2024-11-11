@@ -74,10 +74,8 @@ with app.app_context():
     db.session.commit()
 
 # Calculate total revenue for the sale using the imported function
-    revenue1 = total_revenue_for_sale(
-        sale1.unit_sale_price, sale1.quantity_sold)
-    revenue2 = total_revenue_for_sale(
-        sale2.unit_sale_price, sale2.quantity_sold)
+    revenue1 = total_revenue_for_sale(sale1)
+    revenue2 = total_revenue_for_sale(sale2)
 
     profit_amount1 = profit_by_product(
         revenue1, total_cost1)  # Profit for product1
@@ -88,7 +86,7 @@ with app.app_context():
     margin1 = calculate_profit_margin(profit_amount1, revenue1)
     margin2 = calculate_profit_margin(profit_amount2, revenue2)
 
-    print(type(margin1), "margin")
+    print(margin1, "margin1")
 
     # create profits for products
     profit1 = Profit(profit_amount=profit_amount1, margin=margin1,

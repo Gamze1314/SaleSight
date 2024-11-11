@@ -12,10 +12,9 @@ from werkzeug.exceptions import NotFound, Unauthorized
 # print(pw_hash)
 
 
-# seperate sign up , login and logout resources.
 class CheckSession(Resource):
     def get(self):
-        user_id = session['user_id']
+        user_id = session.get('user_id')  # Safely get user_id from session
         if user_id:
             user = User.query.filter_by(id=user_id).first()
             if user:
@@ -138,6 +137,7 @@ class Sales(Resource):
         sales = ProductSale.query.all()
 
         # revenue = sum(quantity * unit sales price) => hybrid property
+        # total revenue, total cost, and total profit, total items sold.
         response_body = [sale.to_dict() for sale in sales]
 
         return make_response(response_body, 200)

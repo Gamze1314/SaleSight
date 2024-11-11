@@ -9,6 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
 from decimal import Decimal, InvalidOperation
 import re
+from helpers import total_revenue_for_sale
 
 # User has many products through Profit(Many-to-Many)
 # Product has many users through Profit(multiple users can own or access to products.)
@@ -45,7 +46,8 @@ class User(db.Model, SerializerMixin):
     )
 
     # User has many profits
-    profits = db.relationship('Profit', back_populates='user', cascade='all, delete-orphan')
+    profits = db.relationship(
+        'Profit', back_populates='user', cascade='all, delete-orphan')
 
     # User has many Products through Profit.
     products = association_proxy(
@@ -59,9 +61,10 @@ class User(db.Model, SerializerMixin):
         if not isinstance(value, str):
             raise TypeError(f'{key} must be a string.')
         if len(value) < 2 or len(value) > 60:
-            raise ValueError(f'{key} must be between 2 and 60 characters long.')
+            raise ValueError(
+                f'{key} must be between 2 and 60 characters long.')
         return value
-    
+
     @validates('email')
     def validate_email(self, key, value):
         if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
@@ -76,7 +79,8 @@ class User(db.Model, SerializerMixin):
         if not isinstance(value, str):
             raise TypeError(f'{key} must be a string.')
         if len(value) < 3 or len(value) > 60:
-            raise ValueError(f'{key} should be between 3 and 60 characters long.')
+            raise ValueError(
+                f'{key} should be between 3 and 60 characters long.')
         return value
 
     # validate password
@@ -195,11 +199,59 @@ class Product(db.Model, SerializerMixin):
         return f'Product {self.id}, {self.description}, {self.unit_value}, {self.quantity}, {self.purchased_at}, {self.updated_at}'
 
 
+class Cost(db.Model, SerializerMixin):
+    __tablename__ = 'costs'
+
+    serialize_rules = ('-product.costs', '-product.profits',
+                       '-product.sales', 'item_cost')
+
+    id = db.Column(db.Integer, primary_key=True)
+    marketing_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    packaging_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    # foreign key to define relationship between product and associated costs
+    product_id = db.Column(db.Integer, db.ForeignKey(
+        'products.id'), nullable=False)
+
+    # Cost belongs to a product
+    product = db.relationship('Product', back_populates='costs')
+
+    # validate costs
+    @validates('marketing_cost', 'shipping_cost', 'packaging_cost')
+    def validate_costs(self, key, value):
+        if value < 0:
+            raise ValueError(f'{key} cost should be a positive number.')
+        return value
+
+    @hybrid_property
+    def item_cost(self):
+        """
+        Calculate the total cost including the Product unit value.
+        """
+        try:
+            # Calculate total cost for the product_id linked to this Cost instance
+            total_cost = Decimal(
+                self.marketing_cost) + Decimal(self.shipping_cost) + Decimal(self.packaging_cost)
+
+            # Add the Product unit value
+            if self.product and self.product.unit_value:
+                total_cost += Decimal(self.product.unit_value)
+
+            return total_cost.quantize(Decimal('0.01'))
+        except (InvalidOperation, AttributeError) as e:
+            raise ValueError(
+                "Calculation error: ensure values are numeric and product exists.")
+
+    def __repr__(self):
+        return f'Cost {self.id}, {self.marketing_cost}, {self.shipping_cost}, {self.packaging_cost}, {self.product_id}, {self.total_cost}'
+
+
 # PEP 8 Naming Convention
 class ProductSale(db.Model, SerializerMixin):
     __tablename__ = 'product_sales'
 
-    serialize_rules = ('-product.sales', 'item_revenue', '-product.costs', '-profits')
+    serialize_rules = ('-product.sales', 'item_revenue',
+                       '-product.costs', '-profits', 'net_profit')
 
     id = db.Column(db.Integer, primary_key=True)
     unit_sale_price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -223,7 +275,6 @@ class ProductSale(db.Model, SerializerMixin):
         return value
 
     # sales price needs to be validated after the product is loaded.
-
     @validates('unit_sale_price')
     def validate_unit_sale_price(self, key, value):
         # Check if the value is already a Decimal
@@ -243,57 +294,25 @@ class ProductSale(db.Model, SerializerMixin):
 
         return value
 
-    
     # Define the total revenue
     @hybrid_property
     def item_revenue(self):
-        return self.unit_sale_price * self.quantity_sold
+        # call total revenue for sale function from helpers.py
+        return total_revenue_for_sale(self)
 
-    # calculate the profit per product sale( Revenue - profit_margin / 100)
-    @hybrid_property
-    def profit_per_sale(self):
-        return self.revenue * (self.sale_profit_margin / 100)
-
-    # calculate net profit (Revenue - costs)
+    # Calculate net profit (Revenue - Total Costs)
 
     @hybrid_property
     def net_profit(self):
-        total_cost = sum([cost.marketing_cost + cost.shipping_cost +
-                         cost.packaging_cost for cost in self.product.cost])
-        return self.total_revenue - total_cost
+        # Calculate the total item revenue for this sale instance
+        total_revenue = self.item_revenue
+
+        # Sum the total item costs for all cost records associated with this product
+        total_cost = sum(cost.item_cost for cost in self.product.costs)
+
+        # Net profit: Revenue - Total Costs
+        return total_revenue - total_cost
 
     def __repr__(self):
         return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold}, {self.sale_date}, {self.updated_at}, {self.product_id}'
 
-
-class Cost(db.Model, SerializerMixin):
-    __tablename__ = 'costs'
-
-    serialize_rules = ('-product.costs', '-product.profits', '-product.sales', 'total_cost')
-
-    id = db.Column(db.Integer, primary_key=True)
-    marketing_cost = db.Column(db.Numeric(10, 2), nullable=False)
-    shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
-    packaging_cost = db.Column(db.Numeric(10, 2), nullable=False)
-    # foreign key to define relationship between product and associated costs
-    product_id = db.Column(db.Integer, db.ForeignKey(
-        'products.id'), nullable=False)
-
-    # Cost belongs to a product
-    product = db.relationship('Product', back_populates='costs')
-
-    # validate costs
-    @validates('marketing_cost', 'shipping_cost', 'packaging_cost')
-    def validate_costs(self, key, value):
-        if value < 0:
-            raise ValueError(f'{key} cost should be a positive number.')
-        return value
-
-    @hybrid_property
-    def total_cost(self):
-        total_cost = sum([self.marketing_cost + self.shipping_cost +
-                         self.packaging_cost])
-        return Decimal(total_cost)
-
-    def __repr__(self):
-        return f'Cost {self.id}, {self.marketing_cost}, {self.shipping_cost}, {self.packaging_cost}, {self.product_id}, {self.total_cost}'

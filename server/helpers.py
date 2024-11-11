@@ -1,9 +1,8 @@
-from models import User, ProductSale, Profit, Product, Cost
 from config import db
 from decimal import Decimal, InvalidOperation
 
 
-def total_revenue_for_sale(unit_sale_price, quantity_sold):
+def total_revenue_for_sale(sale):
     """
     Calculate total revenue for a single sale.
 
@@ -15,8 +14,8 @@ def total_revenue_for_sale(unit_sale_price, quantity_sold):
     Decimal: The total revenue calculated from the sale.
     """
     try:
-        unit_sale_price = Decimal(unit_sale_price)
-        quantity_sold = Decimal(quantity_sold)
+        unit_sale_price = Decimal(sale.unit_sale_price)
+        quantity_sold = Decimal(sale.quantity_sold)
 
         # Calculate total revenue
         total_revenue = unit_sale_price * quantity_sold
@@ -24,11 +23,14 @@ def total_revenue_for_sale(unit_sale_price, quantity_sold):
         # Quantize to 2 decimal places
         total_revenue = total_revenue.quantize(Decimal('0.01'))
 
-        return total_revenue # returns Decimal places.
+        return total_revenue  # Returns Decimal with 2 decimal places.
     except (InvalidOperation, ValueError):
         raise ValueError(
             "Both unit_sale_price and quantity_sold must be valid numbers.")
     
+
+
+# helper functions used in seed data.
 def profit_by_product(revenue, total_cost):
     profit_amount = revenue - total_cost
     return profit_amount.quantize(Decimal('0.01'))

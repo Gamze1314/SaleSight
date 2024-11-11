@@ -2,7 +2,7 @@
 import React from "react";
 import MainNavBar from "../components/MainNavBar";
 import SaleAnalytics from "../components/SaleAnalytics";
-import ProfitAnalytics from "../components/ProfitAnalytics";
+import { ProfitAnalytics } from "../components/ProfitAnalytics";
 import CostAnalytics from "../components/CostAnalytics";
 
 function AnalyticsPage() {
@@ -17,7 +17,7 @@ function AnalyticsPage() {
           <h1 className="text-3xl font-bold text-gray-800">Sale Insights</h1>
           <p className="text-gray-600 text-center text-xl w-full max-w-4xl mt-6 p-4">
             Your one-stop solution for managing your sales and earnings. Here
-            you can view your total profit, revenue, and total cost.
+            you can view your total profit, revenue, and total cost statistics.
           </p>
         </div>
       </div>
