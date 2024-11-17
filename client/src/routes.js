@@ -9,6 +9,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import { AuthProvider } from "./context/AuthContext";
 import { SalesProvider } from "./context/SalesContext";
 import { ProfitProvider } from "./context/ProfitContext";
+import ProductsPage from "./pages/ProductsPage"
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -50,6 +51,14 @@ const router = createBrowserRouter([
                 </ProfitProvider>
             ),
           },
+          {
+            path: "products",
+            element: (
+              <SalesProvider>
+                <ProductsPage /> 
+              </SalesProvider>
+            ),
+          }
         ],
       },
     ],

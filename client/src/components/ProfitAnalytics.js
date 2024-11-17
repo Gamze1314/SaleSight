@@ -19,23 +19,22 @@ function ProfitAnalytics() {
 
   // Process data to extract relevant details
   const processedData =
-    profitsData?.map(
-      ({ created_at, profit_amount, margin, user, product }) => ({
-        created_at: new Date(created_at),
-        profit_amount: Number(profit_amount),
-        margin: Number(margin),
-        userName: user?.name || "Unknown User", // extract user name
-        productDescription: product?.description || "Unknown Product", // extract product description
-      })
-    ) || [];
+    profitsData?.map(({ created_at, profit_amount, margin, user, product }) => ({
+      created_at: new Date(created_at),
+      profit_amount: Number(profit_amount),
+      margin: Number(margin),
+      userName: user?.name || "Unknown User",
+      productDescription: product?.description || "Unknown Product",
+    })) || [];
 
-    console.log(processedData)
+  console.log(processedData)
 
   const firstRecord = processedData[0] || {};
 
   return (
     <div className="space-y-6 p-4">
       <h2 className="text-2xl font-semibold mb-6">Profit Analytics</h2>
+      <p>Please click on the blue dot to display profit details.</p>
       <ChartContainer data={processedData} />
       <RelatedInfo data={firstRecord} />
     </div>
@@ -64,6 +63,7 @@ const ChartContainer = ({ data }) => (
           <YAxis tickFormatter={formatCurrency} />
           <Tooltip formatter={formatCurrency} />
           <Legend />
+          {/* Display Profit Amount */}
           <Line
             type="monotone"
             dataKey="profit_amount"
@@ -105,8 +105,8 @@ const RelatedInfo = ({ data }) => (
     <h4 className="text-lg font-medium mb-4">Related Information</h4>
     {data ? (
       <div>
-        <p className="font-medium">User: {data.userName}</p>
-        <p className="font-medium">Product: {data.productDescription}</p>
+        <p className="font-medium">Sale Assistant: {data.userName}</p>
+        <p className="font-medium">Product Description: {data.productDescription}</p>
       </div>
     ) : (
       <p>No data available</p>

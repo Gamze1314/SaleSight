@@ -1,16 +1,13 @@
-//  /sale GET request. updates state.
+import React, { createContext, useState, useEffect } from "react";
 
-import React, { useState , useEffect, createContext } from 'react';
-
-export const SalesContext = createContext([])
+export const SalesContext = createContext();
 
 export const SalesProvider = ({ children }) => {
   const [salesData, setSalesData] = useState([]);
-  const [error, setError] = useState(null); // error state for saleContext
+  const [productDetails, setProductDetails] = useState([]); // State to hold product details
+  const [error, setError] = useState(null);
 
-  // function to manage sale data
-
-  //fetchSalesData()
+  // Fetch initial sales data
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
@@ -18,9 +15,11 @@ export const SalesProvider = ({ children }) => {
         if (res.ok) {
           const data = await res.json();
           setSalesData(data);
+        } else {
+          throw new Error("Failed to fetch sales data");
         }
       } catch (err) {
-        setError(err);
+        setError(err.message);
         console.error(err);
       }
     };
@@ -28,16 +27,44 @@ export const SalesProvider = ({ children }) => {
     fetchSalesData();
   }, []);
 
-  console.log(salesData)
+  // Fetch product details based on IDs from salesData
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      if (!salesData || salesData.length === 0) return;
 
+      const productIds = salesData.slice(1).map((product) => product.id); // Extract product IDs
+      try {
+        const productDetailPromises = productIds.map(async (id) => {
+          const res = await fetch(`/product/${id}`);
+          if (!res.ok) {
+            throw new Error(`Failed to fetch details for product ID: ${id}`);
+          }
+          return await res.json();
+        });
+
+        const details = await Promise.all(productDetailPromises);
+        setProductDetails(details);
+      } catch (err) {
+        setError(err.message);
+        console.error(err);
+      }
+    };
+
+    fetchProductDetails();
+  }, [salesData]);
 
   // Function to clear the error state
   const clearError = () => {
     setError(null);
   };
 
+  console.log("Sales Data:", salesData);
+  console.log("Product Details:", productDetails);
+
   return (
-    <SalesContext.Provider value={{ salesData, error }}>
+    <SalesContext.Provider
+      value={{ salesData, productDetails, error, clearError }}
+    >
       {children}
     </SalesContext.Provider>
   );

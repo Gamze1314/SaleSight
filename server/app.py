@@ -15,13 +15,14 @@ from helpers import profit_by_product
 
 class CheckSession(Resource):
     def get(self):
-        user_id = session.get('user_id')  # Safely get user_id from session
+        user_id = session['user_id']  # Safely get user_id from session
         if user_id:
             user = User.query.filter_by(id=user_id).first()
             if user:
                 return make_response(user.to_dict(), 200)
             else:
-                session.pop('user_id', None)  # Clean up invalid session
+                session['user_id'] = None
+                session.clear()  # Clears all session data
         return abort(401, 'User not found')
 
 
@@ -115,7 +116,7 @@ api.add_resource(Login, '/login')
 class LogOut(Resource):
     def delete(self):
         if 'user_id' in session:
-            del (session['user_id'])
+            session['user_id'] = None
             session.clear()  # Clears all session data
             return make_response({'message': 'User logged out successfully'}, 200)
         else:
@@ -125,7 +126,7 @@ class LogOut(Resource):
 api.add_resource(LogOut, '/logout')
 
 
-class Sales(Resource):
+class UserSales(Resource):
     # Returns all sales, revenue, and product data for authenticated user
     def get(self):
         # Get user_id from the session
@@ -183,11 +184,11 @@ class Sales(Resource):
 
 
 # Add the resource to the API
-api.add_resource(Sales, '/product_sales')
+api.add_resource(UserSales, '/product_sales')
 
 
 # user_id, product_id
-class Profits(Resource):
+class UserProfits(Resource):
     # returns all profits for the products of authenticated user
     def get(self):
         # Get user_id from the session.
@@ -204,7 +205,47 @@ class Profits(Resource):
         return make_response(response_body, 200)
 
 
-api.add_resource(Profits, '/profits')
+api.add_resource(UserProfits, '/profits')
+
+
+class ProductByID(Resource):
+    """
+    Endpoint to retrieve product details along with associated costs, profits, and sales by ID.
+    """
+
+    def get(self, id):
+        # Query the product by ID
+        product = Product.query.get(id)
+
+        # If the product doesn't exist, returns a 404 error
+        if not product:
+            abort(404, message="Product not found")
+
+        # Convert product details and related data to dictionaries
+        product_data = product.to_dict()
+
+        costs = [cost.to_dict() for cost in product.costs]
+
+        profits = [profit.to_dict() for profit in product.profits]
+
+        sales = [sale.to_dict() for sale in product.sales]
+
+        # Construct the response body
+        response_body = {
+            "id": product_data["id"],
+            "description": product_data["description"],
+            "unit_value": product_data["unit_value"],
+            "quantity": product_data["quantity"],
+            "purchased_at": product_data["purchased_at"],
+            "costs": costs,
+            "profits": profits,
+            "sales": sales
+        }
+
+        return make_response(response_body, 200)
+
+
+api.add_resource(ProductByID, '/product/<int:id>')
 
 
 # this script runs the app
