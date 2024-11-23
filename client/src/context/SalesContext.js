@@ -30,7 +30,7 @@ export const SalesProvider = ({ children }) => {
   // Fetch product details based on IDs from salesData
   useEffect(() => {
     const fetchProductDetails = async () => {
-      if (!salesData || salesData.length === 0) return;
+      // if (!salesData || salesData.length === 0) return;
 
       const productIds = salesData.slice(1).map((product) => product.id); // Extract product IDs
       try {
@@ -60,6 +60,8 @@ export const SalesProvider = ({ children }) => {
 
   console.log("Sales Data:", salesData);
   console.log("Product Details:", productDetails);
+
+  // API POST request for new product addition. /products
 
   return (
     <SalesContext.Provider

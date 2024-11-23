@@ -226,9 +226,9 @@ class ProductByID(Resource):
 
         costs = [cost.to_dict() for cost in product.costs]
 
-        profits = [profit.to_dict() for profit in product.profits]
+        profits = [profit.to_dict(only=('id', 'margin', 'profit_amount')) for profit in product.profits]
 
-        sales = [sale.to_dict() for sale in product.sales]
+        sales = [sale.to_dict(only=('unit_sale_price', 'quantity_sold', 'sale_date')) for sale in product.sales]
 
         # Construct the response body
         response_body = {
