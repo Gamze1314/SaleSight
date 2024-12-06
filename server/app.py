@@ -181,6 +181,81 @@ class UserSales(Resource):
             ]
 
         return make_response(response_body, 200)
+    
+
+    # handle Product addition here with sales, cost, profit data.
+    def post(self):
+        # Get user_id from the session
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+        try:
+        # Retrieve the product data from the request JSON
+            product_data = request.get_json()
+
+            # Create a new Product object
+            new_product = Product(
+                description=product_data.get("description"),
+                unit_value=product_data.get("unit_value"),
+                quantity=product_data.get("quantity")
+            )
+
+            # Add the new product to the database
+            db.session.add(new_product)
+            db.session.commit()
+
+            # Create a new ProductSale object
+            new_sale = ProductSale(
+                product_id=new_product.id,
+                quantity_sold=product_data.get("quantity_sold"),
+                unit_sale_price=product_data.get("unit_sale_price")
+            )
+
+            # Add the new sale to the database
+            db.session.add(new_sale)
+            db.session.commit()
+
+            # Create a new Cost object
+            new_cost = Cost(
+                product_id=new_product.id,
+                marketing_cost=product_data.get("marketing_cost"),
+                shipping_cost=product_data.get("shipping_cost"),
+                packaging_cost=product_data.get("packaging_cost")
+            )
+
+            # Add the new cost to the database
+            db.session.add(new_cost)
+            db.session.commit()
+
+            # Calculate total sales revenue
+            total_sales = new_sale.unit_sale_price * new_sale.quantity_sold
+
+            # Calculate total costs
+            total_cost = (
+                new_cost.marketing_cost +
+                new_cost.shipping_cost +
+                new_cost.packaging_cost
+            )
+
+            # Calculate profit amount
+            profit_amount = total_sales - total_cost
+
+
+            new_profit = Profit(
+                product_id=new_product.id,
+                profit_amount=profit_amount,
+                margin=product_data.get('profit_margin'),
+                user_id=user_id,
+            )
+
+            db.session.add(new_profit)
+            db.session.commit()
+
+            return make_response({"message": "Product added successfully"}, 201)
+        except Exception as e:
+            abort(500, f"An error occurred: {str(e)}")
+    
 
 
 # Add the resource to the API
@@ -246,6 +321,8 @@ class ProductByID(Resource):
 
 
 api.add_resource(ProductByID, '/product/<int:id>')
+
+
 
 
 # this script runs the app

@@ -58,14 +58,46 @@ export const SalesProvider = ({ children }) => {
     setError(null);
   };
 
-  console.log("Sales Data:", salesData);
-  console.log("Product Details:", productDetails);
 
   // API POST request for new product addition. /products
+const addProduct = async (values) => {
+  try {
+    // Sanitize values to handle empty fields
+    const sanitizedValues = Object.fromEntries(
+      Object.entries(values).map(([key, value]) => {
+        if (key === "quantity_sold" && value === "") {
+          return [key, 0]; // Default `quantity_sold` to 0
+        }
+        return [key, value === "" ? null : value];
+      })
+    );
+
+    const response = await fetch("/product_sales", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sanitizedValues),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to add product: ${response.statusText}`);
+    }
+    const data = await response.json();
+    console.log("Product added successfully:", data);
+    // update state 
+    setProductDetails((prevDetails) => [...prevDetails, data]);
+    setSalesData((prevSales) => [...prevSales, { id: data.id, ...data }]);
+  } catch (error) {
+    console.error("Error adding product:", error);
+  }
+};
+
+console.log(productDetails)
 
   return (
     <SalesContext.Provider
-      value={{ salesData, productDetails, error, clearError }}
+      value={{ salesData, productDetails, error, clearError, addProduct }}
     >
       {children}
     </SalesContext.Provider>

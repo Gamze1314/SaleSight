@@ -23,7 +23,7 @@ function ProductToolBar( { setShowForm }) {
       </button>
 
       {/* Filter Options */}
-      <div className="flex items-center space-x-4">
+      {/* <div className="flex items-center space-x-4">
         <label className="text-sm font-medium text-gray-700" htmlFor="category">
           Filter by Category:
         </label>
@@ -36,7 +36,7 @@ function ProductToolBar( { setShowForm }) {
           <option value="clothing">Clothing</option>
           <option value="accessories">Accessories</option>
         </select>
-      </div>
+      </div> */}
     </div>
   );
 }

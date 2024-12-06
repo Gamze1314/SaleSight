@@ -10,7 +10,7 @@ function ProductsList() {
   if (!productDetails || productDetails.length === 0)
     return <div>Loading product details...</div>;
 
-  // Process productDetails to separate product, costs, and profits
+
   // Process productDetails to separate product, costs, profits, and sales
   const processedProducts = productDetails.map((item) => {
     const { costs = [], profits = [], sales = [], ...product } = item;
@@ -23,14 +23,28 @@ function ProductsList() {
     };
   });
 
+
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {processedProducts.map((product) => (
-        <div className="bg-gray-100 p-4 shadow rounded-lg">
-          <Product key={product.id} product={product} />
-        </div>
-      ))}
-    </div>
+    <table className="w-full text-sm border-collapse border border-gray-200">
+      {/* Table Header */}
+      <thead>
+        <tr className="bg-gray-100">
+          <th className="p-3 text-left border border-gray-200">Description</th>
+          <th className="p-3 text-right border border-gray-200">Unit Price</th>
+          <th className="p-3 text-right border border-gray-200">Quantity</th>
+          {/* <th className="p-3 text-right border border-gray-200">Cost</th>
+          <th className="p-3 text-right border border-gray-200">Revenue</th>
+          <th className="p-3 text-right border border-gray-200">Profit</th> */}
+        </tr>
+      </thead>
+      {/* Table Body */}
+      <tbody>
+        {productDetails.map((product, index) => (
+          <Product key={product.id} product={product} index={index} />
+        ))}
+      </tbody>
+    </table>
   );
 }
 
