@@ -7,6 +7,7 @@ from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost
 from werkzeug.exceptions import NotFound, Unauthorized
 from helpers import profit_by_product
+from decimal import Decimal
 
 # pw_hash = flask_bcrypt.generate_password_hash('hunter2')
 # flask_bcrypt.check_password_hash(pw_hash, 'hunter2')  # returns True
@@ -115,6 +116,7 @@ api.add_resource(Login, '/login')
 # Logout Resource
 class LogOut(Resource):
     def delete(self):
+        # breakpoint()
         if 'user_id' in session:
             session['user_id'] = None
             session.clear()  # Clears all session data
@@ -144,12 +146,15 @@ class UserSales(Resource):
         # Retrieve the user's products
         user_products = user.products
 
+        # user.profits 
+
         if not user_products:
             return make_response({"message": "No products found for this user."}, 404)
 
         # Initialize a response list to hold data for each product
         products_data = []
 
+        # profit.costs , profit.sales
         for product in user_products:
             # Get all sales and costs related to this product
             sales = ProductSale.query.filter_by(product_id=product.id).all()
@@ -194,6 +199,8 @@ class UserSales(Resource):
         # Retrieve the product data from the request JSON
             product_data = request.get_json()
 
+            product_data["description"] = product_data["description"].upper()
+
             # Create a new Product object
             new_product = Product(
                 description=product_data.get("description"),
@@ -206,6 +213,18 @@ class UserSales(Resource):
             db.session.commit()
 
             # Create a new ProductSale object
+            #validate if numbers are provided and digit
+            if not all(isinstance(x, (int, float, Decimal)) for x in [
+                    product_data.get("quantity_sold"),
+                    product_data.get("unit_sale_price"),
+                    product_data.get("marketing_cost"),
+                    product_data.get("shipping_cost"),
+                    product_data.get("packaging_cost")
+                ]):
+                abort(400, "Invalid data provided for sales, costs, or profit.")
+
+            # Create a new Profit object
+
             new_sale = ProductSale(
                 product_id=new_product.id,
                 quantity_sold=product_data.get("quantity_sold"),
@@ -255,11 +274,45 @@ class UserSales(Resource):
             return make_response({"message": "Product added successfully"}, 201)
         except Exception as e:
             abort(500, f"An error occurred: {str(e)}")
+
+
+
+    #handle Product details update
+    def patch(self, product_id):
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+
+        # Check if the product exists
+        product = Product.query.filter_by(id=product_id, user_id=user_id).first()
+
+        if not product:
+            abort(404, "Product not found")
+
+        # Get the update data from the request
+        product_data = request.get_json()
+
+        # Update fields
+        if 'description' in product_data:
+            # Ensure description is uppercase
+            product.description = product_data['description'].upper()
+        if 'unit_value' in product_data:
+            product.unit_value = product_data['unit_value']
+        if 'quantity' in product_data:
+            product.quantity = product_data['quantity']
+
+            # Commit the changes to the database
+        db.session.commit()
+
+        return make_response({"message": "Product updated successfully"}, 200)
+
+    #handle Product deletion.
     
 
-
 # Add the resource to the API
-api.add_resource(UserSales, '/product_sales')
+api.add_resource(UserSales, '/product_sales',
+                 '/product_sales/<int:product_id>')
 
 
 # user_id, product_id
