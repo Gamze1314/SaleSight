@@ -30,7 +30,7 @@ from helpers import total_revenue_for_sale
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules = ('-profits.user', '-password_hash')
+    serialize_rules = ('-profits.user', '-password_hash',)
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -278,7 +278,7 @@ class ProductSale(db.Model, SerializerMixin):
         return profit_margin.quantize(Decimal('0.01'))
 
     def __repr__(self):
-        return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold}, {self.sale_date}, {self.updated_at}'
+        return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold},{self.profit_amount}, {self.profit_margin} {self.sale_date}, {self.updated_at}'
     
 class Profit(db.Model, SerializerMixin):
     __tablename__ = 'profits'
@@ -339,7 +339,6 @@ class Profit(db.Model, SerializerMixin):
         if '.' in str_value and len(str_value.split('.')[-1]) > 2:
             raise ValueError(f'{key} must have exactly 2 decimal places.')
         return value
-
 
 
     def __repr__(self):

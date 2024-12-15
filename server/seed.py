@@ -24,54 +24,68 @@ with app.app_context():
     db.session.add_all([user1, user2])
     db.session.commit()
 
+    print("user data seeded successfully")
+
     # Create products
-    product1 = Product(description='Product A', unit_value=10.00, quantity=100)
-    product2 = Product(description='Product B', unit_value=20.00, quantity=50)
+    product1 = Product(description='Product A')
+    product2 = Product(description='Product B')
     db.session.add_all([product1, product2])
     db.session.commit()
 
-    # Create costs
-    cost1 = Cost(quantity_purchased=25, marketing_cost=100.55,
-                 shipping_cost=50.00, packaging_cost=20.15)
-    cost2 = Cost(quantity_purchased=35, marketing_cost=80.10,
-                 shipping_cost=40.00, packaging_cost=15.05)
-    db.session.add_all([cost1, cost2])
-    db.session.commit()
+    print("Product data seeded successfully")
 
-    # Calculate total cost and desired margins
-    total_cost1 = Decimal(product1.unit_value) + Decimal(cost1.marketing_cost) + \
-        Decimal(cost1.shipping_cost) + Decimal(cost1.packaging_cost)
-    total_cost2 = Decimal(product2.unit_value) + Decimal(cost2.marketing_cost) + \
-        Decimal(cost2.shipping_cost) + Decimal(cost2.packaging_cost)
+    # create profits => initial profit amount and margin is 0 if no sale is made.
+    #after sale creation, the columns will be updated.
+    profit1 = Profit(profit_amount=Decimal(0), margin=Decimal(0), product_id=product1.id, user_id=user1.id)
 
-    desired_margin1 = Decimal('52.78')
-    desired_margin2 = Decimal('46.52')
+    profit2 = Profit(profit_amount=Decimal(0), margin=Decimal(0), product_id=product2.id, user_id=user2.id)
 
-    sale_price1 = round(total_cost1 * (1 + desired_margin1 / 100), 2)
-    sale_price2 = round(total_cost2 * (1 + desired_margin2 / 100), 2)
-
-    # Create product sales
-    sale1 = ProductSale(unit_sale_price=sale_price1, quantity_sold=30)
-    sale2 = ProductSale(unit_sale_price=sale_price2, quantity_sold=10)
-    db.session.add_all([sale1, sale2])
-    db.session.commit()
-
-    # Calculate profits and margins
-    revenue1 = total_revenue_for_sale(sale1)
-    revenue2 = total_revenue_for_sale(sale2)
-
-    profit_amount1 = profit_by_product(revenue1, total_cost1)
-    profit_amount2 = profit_by_product(revenue2, total_cost2)
-
-    margin1 = calculate_profit_margin(profit_amount1, revenue1)
-    margin2 = calculate_profit_margin(profit_amount2, revenue2)
-
-    # Create profits
-    profit1 = Profit(profit_amount=profit_amount1,
-                     margin=margin1, sale_id=sale1.id, user_id=user1.id)
-    profit2 = Profit(profit_amount=profit_amount2,
-                     margin=margin2, sale_id=sale2.id, user_id=user2.id)
     db.session.add_all([profit1, profit2])
     db.session.commit()
 
+    print("Profit data seeded successfully")
+
+    # Create product sales
+    sale1 = ProductSale(unit_sale_price=100, quantity_sold=30, profit_id=profit1.id)
+
+    sale2 = ProductSale(unit_sale_price=200, quantity_sold=10, profit_id=profit2.id)
+
+    db.session.add_all([sale1, sale2])
+    db.session.commit()
+
+    print("Sale data seeded successfully")
+
+    # Create costs
+    cost1 = Cost(quantity_purchased=25, unit_value=5, marketing_cost=100.55,
+                 shipping_cost=50.00, packaging_cost=20.15, profit_id=profit1.id)
+
+    cost2 = Cost(quantity_purchased=35, unit_value=7, marketing_cost=80.10,
+                 shipping_cost=40.00, packaging_cost=15.05, profit_id=profit2.id)
+    
+    db.session.add_all([cost1, cost2])
+    db.session.commit()
+
+    print("Cost data seeded successfully")
+
+    profits = Profit.query.all()
+    for profit in profits:
+        # Calculate total revenue using the sales_revenue hybrid property
+        total_revenue = sum(sale.sales_revenue for sale in profit.sales)
+
+        # Calculate total profit amount using the profit_amount hybrid property
+        total_profit_amount = sum(sale.profit_amount for sale in profit.sales)
+
+        # Calculate profit margin
+        # Avoid division by zero( if there is no sale.)
+        margin = (total_profit_amount / total_revenue *
+                100) if total_revenue > 0 else Decimal('0.00')
+
+        # Update the Profit amount and margin.
+        profit.profit_amount = total_profit_amount.quantize(Decimal('0.01'))
+        profit.margin = margin.quantize(Decimal('0.01'))
+
+
+    db.session.commit()
+
+    print("Profit records updated successfully")
     print("Seed data created successfully.")
