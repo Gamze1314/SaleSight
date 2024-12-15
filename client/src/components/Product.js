@@ -1,41 +1,63 @@
-import React from "react";
+import React, { useState } from "react";
 // import sales context to display the product details.
 
-function Product({ product, index }) {
-  console.log(product.costs);
+function Product({ product, onEdit, onDelete }) {
+  const [isChecked, setIsChecked] = useState(false);
 
-  const productSales = product.sales; // array
-  const itemRevenues = []; // Array to store computed item revenues
 
-  productSales.forEach((sale) => {
-    // Calculate item revenue for each sale
+  // if the checkbox is checked, then store the product in the state to handle PATCH and DELETE requests accordingly.
+    const handleCheckboxChange = (e) => {
+      setIsChecked(e.target.checked);
+    }
+
+
+    const productSales = product.sales;
+    const itemRevenues = []; // Array to store computed item revenues
+
+    productSales.forEach((sale) => {
+        // Calculate item revenue for each sale
     const itemRevenue = sale.quantity_sold * sale.unit_sale_price;
-    itemRevenues.push(itemRevenue);
-  });
+        itemRevenues.push(itemRevenue);
+    });
 
-  // const productCosts = product.costs.map((cost) => cost["item_cost"]); // array with multiple cost objects
-  // const productProfits = product.profits.map((profit) => profit["margin"]);
 
   return (
-    <tr className="border-b">
-      {/* Description */}
-      <td className="p-3 text-left">{index + 1}. {product.description}</td>
-
-      {/* Price */}
-      <td className="p-3 text-right">${product.unit_value}</td>
-
-      {/* Quantity */}
-      <td className="p-3 text-right">{product.quantity} pcs</td>
-
-      {/* Cost
-      <td className="p-3 text-right">${productCosts[0] || "N/A"}</td>
-
-      {/* Revenue */}
-      {/* <td className="p-3 text-right">${itemRevenues[0] || "N/A"}</td>
-
-      {/* Profit */}
-      {/* <td className="p-3 text-right">%{productProfits[0] || "N/A"}</td> */}
-    </tr>
+    <>
+      <tr className="border-b">
+        {/* Checkbox for selection */}
+        <td className="p-3 text-center">
+          <input
+            type="checkbox"
+            className="form-checkbox h-4 w-4 text-blue-600"
+            onChange={handleCheckboxChange}
+          />
+        </td>
+        <td className="p-3 text-center">{product.description}</td>
+        <td className="p-3 text-center">${product.unit_value || "N/A"}</td>
+        <td className="p-3 text-center">{product.quantity || "N/A"}</td>
+        <td className="p-3 text-center">
+          {" "}
+          <button
+            className={`text-blue-600 hover:underline mr-2 ${
+              isChecked ? "" : "opacity-50 cursor-not-allowed"
+            }`}
+            disabled={!isChecked}
+            onClick={() => isChecked && onEdit(product)}
+          >
+            Edit Details
+          </button>
+          <button
+            className={`text-red-600 hover:underline ${
+              isChecked ? "" : "opacity-50 cursor-not-allowed"
+            }`}
+            disabled={!isChecked}
+            onClick={() => isChecked && onDelete(product.id)}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    </>
   );
 }
 

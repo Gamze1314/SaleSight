@@ -1,8 +1,8 @@
 """initial migration
 
-Revision ID: db7a6550b154
+Revision ID: e4813b7cf0aa
 Revises: 
-Create Date: 2024-12-13 19:30:12.733254
+Create Date: 2024-12-14 19:00:43.534999
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'db7a6550b154'
+revision = 'e4813b7cf0aa'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,8 +21,6 @@ def upgrade():
     op.create_table('products',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('description', sa.String(length=100), nullable=False),
-    sa.Column('unit_value', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('quantity', sa.Integer(), nullable=False),
     sa.Column('purchased_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_products'))
@@ -56,6 +54,7 @@ def upgrade():
     op.create_table('costs',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('quantity_purchased', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('unit_value', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('marketing_cost', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('shipping_cost', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('packaging_cost', sa.Numeric(precision=10, scale=2), nullable=False),

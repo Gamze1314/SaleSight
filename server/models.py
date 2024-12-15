@@ -129,7 +129,7 @@ class Product(db.Model, SerializerMixin):
 
 
     def __repr__(self):
-        return f'Product {self.id}, {self.description}, {self.unit_value}, {self.purchased_at}, {self.updated_at}'
+        return f'Product {self.id}, {self.description} {self.purchased_at}, {self.updated_at}'
 
 
 class Cost(db.Model, SerializerMixin):
@@ -213,6 +213,15 @@ class ProductSale(db.Model, SerializerMixin):
     def validate_quantity_sold(self, key, value):
         if value < 1:
             raise ValueError('Quantity sold should be greater than 0.')
+        #check quantity sold does not exceed quantity purchased
+        if self.profit and self.profit.costs:
+            total_purchased = sum(
+                cost.quantity_purchased for cost in self.profit.costs)
+            total_sold = sum(sale.quantity_sold for sale in self.profit.sales)
+            # Check if adding this sale would exceed total purchased quantity
+            if total_sold + value > total_purchased:
+                raise ValueError(
+                    'Quantity sold cannot exceed total quantity purchased.')
         return value
 
     # sales price needs to be validated after the product is loaded.
@@ -241,9 +250,9 @@ class ProductSale(db.Model, SerializerMixin):
         # call total revenue for sale function from helpers.py
         return total_revenue_for_sale(self)
 
-    # Calculates net profit (Revenue - Total Costs)
+    # # Calculates net profit (Revenue - Total Costs)
     @hybrid_property
-    def net_profit(self):
+    def profit_amount(self):
         # Calculate the total item revenue for this sale instance
         total_revenue = self.sales_revenue
 
@@ -253,12 +262,25 @@ class ProductSale(db.Model, SerializerMixin):
         # Net profit: Revenue - Total Costs
         net_profit = total_revenue - total_cost
         return net_profit.quantize(Decimal('0.01'))
+    
+    @hybrid_property
+    def profit_margin(self):
+        # Calculate the total item revenue for this sale instance
+        total_revenue = self.sales_revenue
 
+        # zero revenue case to avoid division by zero
+        if total_revenue == 0:
+            return Decimal('0.00')
+
+        # Profit margin: (Revenue - Total Costs) / Revenue * 100
+        profit_margin = self.profit_amount / total_revenue * 100
+
+        return profit_margin.quantize(Decimal('0.01'))
 
     def __repr__(self):
-        return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold}, {self.sale_date}, {self.updated_at}, {self.product_id}'
+        return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold}, {self.sale_date}, {self.updated_at}'
     
-    class Profit(db.Model, SerializerMixin):
+class Profit(db.Model, SerializerMixin):
     __tablename__ = 'profits'
 
     serialize_rules = ('-user.profits', '-product.profits',
@@ -317,6 +339,8 @@ class ProductSale(db.Model, SerializerMixin):
         if '.' in str_value and len(str_value.split('.')[-1]) > 2:
             raise ValueError(f'{key} must have exactly 2 decimal places.')
         return value
+
+
 
     def __repr__(self):
         return f'Profit {self.id}, {self.profit_amount}, {self.margin}, {self.product_id}, {self.user_id}, {self.created_at}, {self.updated_at}'

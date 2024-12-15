@@ -93,11 +93,36 @@ const addProduct = async (values) => {
   }
 };
 
-console.log(productDetails)
+
+
+const updateProduct = async (productId, updatedProductData) => {
+  try {
+    // Replace with the actual API endpoint, including the productId in the URL
+    const response = await fetch(`/product_sales/${productId}`, {
+      method: "PATCH", // Use PATCH for partial updates
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedProductData), // Sending the updated product data
+    });
+    if (!response.ok) {
+      throw new Error("Failed to update product");
+    }
+
+    const data = await response.json();
+    console.log("Product updated successfully:", data);
+    //state updating logic here if needed
+    //  update your products list or trigger a refresh
+  } catch (error) {
+    console.error("Error updating product:", error.message);
+  }
+};
+
+
 
   return (
     <SalesContext.Provider
-      value={{ salesData, productDetails, error, clearError, addProduct }}
+      value={{ salesData, productDetails, error, clearError, addProduct, updateProduct }}
     >
       {children}
     </SalesContext.Provider>

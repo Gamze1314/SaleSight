@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 // useContext for addProduct
@@ -18,29 +18,25 @@ const ValidationSchema = Yup.object().shape({
   quantity_sold: Yup.number().required("Quantity sold is required"),
 });
 
-const ProductForm = ({ onClose }) => {
+const ProductForm = ({ product, onClose }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-
-  const { addProduct } = useContext(SalesContext);
-
+  const { addProduct, updateProduct } = useContext(SalesContext);
 
   const formik = useFormik({
     initialValues: {
-      // product addition fields
-      description: "",
-      unit_value: "",
-      quantity: "",
-      // cost fields
-      marketing_cost: "",
-      shipping_cost: "",
-      packaging_cost: "",
-      //profit
-      profit_margin: "",
-      // sales
-      unit_sale_price: "",
-      quantity_sold: "",
+      // Initialize formik values with product data if available
+      description: product ? product.description : "",
+      unit_value: product ? product.unit_value : "",
+      quantity: product ? product.quantity : "",
+      marketing_cost: product ? product.marketing_cost : "",
+      shipping_cost: product ? product.shipping_cost : "",
+      packaging_cost: product ? product.packaging_cost : "",
+      profit_margin: product ? product.profit_margin : "",
+      unit_sale_price: product ? product.unit_sale_price : "",
+      quantity_sold: product ? product.quantity_sold : "",
     },
     validationSchema: ValidationSchema,
+    enableReinitialize: true, // Ensures the form gets reset when product data changes.
     onSubmit: (values) => {
       // Sanitize values and set defaults
       const sanitizedValues = Object.fromEntries(
@@ -51,14 +47,22 @@ const ProductForm = ({ onClose }) => {
           return [key, value === "" ? null : value]; // Replace empty strings with `null`
         })
       );
-      console.log("Sanitized Values:", sanitizedValues);
-
-      // Add product and close form
-      addProduct(sanitizedValues);
+      // If updating, call updateProduct, else add a new product
+      if (isUpdating && product) {
+        updateProduct(product.id, sanitizedValues); // Assuming product has an id
+      } else {
+        addProduct(sanitizedValues);
+      }
       onClose();
     },
   });
 
+  // Effect to clean up the form when switching to add mode or edit mode
+  useEffect(() => {
+    if (!product) {
+      formik.resetForm(); // Clear form when switching to add mode
+    }
+  }, [product]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur">
@@ -72,7 +76,7 @@ const ProductForm = ({ onClose }) => {
         </button>
 
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-          Add Product Details
+          {product ? "Edit Product Details" : "Add Product Details"}
         </h2>
         <form onSubmit={formik.handleSubmit}>
           {/* BASIC FIELDS */}
@@ -138,130 +142,130 @@ const ProductForm = ({ onClose }) => {
               )}
             </div>
             <div>
-                <label
+              <label
                 htmlFor="marketing_cost"
                 className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              >
                 Marketing Cost
-                </label>
-                <input
+              </label>
+              <input
                 id="marketing_cost"
                 name="marketing_cost"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
                 value={formik.values.marketing_cost}
-                />
-                {formik.errors.marketing_cost && (
+              />
+              {formik.errors.marketing_cost && (
                 <p className="text-sm text-red-600">
-                    {formik.errors.marketing_cost}
+                  {formik.errors.marketing_cost}
                 </p>
-                )}
+              )}
             </div>
             <div>
-                <label
+              <label
                 htmlFor="shipping_cost"
                 className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              >
                 Shipping Cost
-                </label>
-                <input
+              </label>
+              <input
                 id="shipping_cost"
                 name="shipping_cost"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
                 value={formik.values.shipping_cost}
-                />
-                {formik.errors.shipping_cost && (
+              />
+              {formik.errors.shipping_cost && (
                 <p className="text-sm text-red-600">
-                    {formik.errors.shipping_cost}
+                  {formik.errors.shipping_cost}
                 </p>
-                )}
+              )}
             </div>
             <div>
-                <label
+              <label
                 htmlFor="packaging_cost"
                 className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              >
                 Packaging Cost
-                </label>
-                <input
+              </label>
+              <input
                 id="packaging_cost"
                 name="packaging_cost"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
                 value={formik.values.shipping_cost}
-                />
-                {formik.errors.packaging_cost && (
+              />
+              {formik.errors.packaging_cost && (
                 <p className="text-sm text-red-600">
-                    {formik.errors.packaging_cost}
+                  {formik.errors.packaging_cost}
                 </p>
-                )}
+              )}
             </div>
             <div>
-                <label
+              <label
                 htmlFor="profit_margin"
                 className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              >
                 Profit Margin %
-                </label>
-                <input
+              </label>
+              <input
                 id="profit_margin"
                 name="profit_margin"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
                 value={formik.values.profit_margin}
-                />
-                {formik.errors.profit_margin && (
+              />
+              {formik.errors.profit_margin && (
                 <p className="text-sm text-red-600">
-                    {formik.errors.profit_margin}
+                  {formik.errors.profit_margin}
                 </p>
-                )}
+              )}
             </div>
             <div>
-                <label
+              <label
                 htmlFor="unit_sale_price"
                 className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              >
                 Unit Sales Price
-                </label>
-                <input
+              </label>
+              <input
                 id="unit_sale_price"
                 name="unit_sale_price"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
                 value={formik.values.unit_sale_price}
-                />
-                {formik.errors.unit_sale_price && (
+              />
+              {formik.errors.unit_sale_price && (
                 <p className="text-sm text-red-600">
-                    {formik.errors.unit_sale_price}
+                  {formik.errors.unit_sale_price}
                 </p>
-                )}
+              )}
             </div>
             <div>
-                <label
+              <label
                 htmlFor="quantity_sold"
                 className="block text-sm font-medium text-gray-700 mb-1"
-                >
+              >
                 Quantity Sold
-                </label>
-                <input
+              </label>
+              <input
                 id="quantity_sold"
                 name="quantity_sold"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
                 value={formik.values.quantity_sold}
-                />
-                {formik.errors.quantity_sold && (
+              />
+              {formik.errors.quantity_sold && (
                 <p className="text-sm text-red-600">
-                    {formik.errors.quantity_sold}
+                  {formik.errors.quantity_sold}
                 </p>
-                )}
+              )}
             </div>
           </div>
           {/* TOGGLE BUTTON */}
