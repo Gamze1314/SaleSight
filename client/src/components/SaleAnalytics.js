@@ -15,43 +15,51 @@ function SaleAnalytics() {
   }
 
   // Extract user and products from salesData
-  const user = salesData[0];
-  const products = salesData.slice(1); // Remaining elements are products
+  // const user = salesData[0];
+  // const products = salesData.slice(1); // Remaining elements are products
 
-  // Initialize an empty array to collect processed sales data
-  const processedData = [];
+  // const { user, products, costs, user_sales } = salesData;
 
-  products.forEach((product) => {
-    product.sales.forEach((sale) => {
-      const totalCost = product.costs.reduce(
-        (acc, cost) => acc + parseFloat(cost.item_cost),
-        0
-      );
-      const revenue = parseFloat(sale.item_revenue);
-      const profit = revenue - totalCost;
+  // console.log(user, products, costs, user_sales);
 
-      processedData.push({
-        id: sale.id,
-        date: new Date(sale.sale_date).toLocaleDateString(),
-        revenue: revenue,
-        cost: totalCost,
-        profit: profit,
-        quantity: Number(sale.quantity_sold),
-      });
-    });
-  });
+    const user = salesData[0];
+    // const userProducts = salesData[2];
+    const costs = salesData[3];
+    const userSales = salesData[4];
 
-  const sortedData = [...processedData].sort(
+    const username = user?.user?.username || "Unknown User";
+
+  // Process sales data
+  const processedData = userSales.map((sale) => {
+          return {
+            id: sale.id,
+            date: new Date(sale.sale_date).toLocaleDateString(),
+            sales_revenue: sale.sales_revenue,
+            profit_amount: sale.profit_amount,
+            profit_margin: sale.profit_margin,
+            quantity_sold: Number(sale.quantity_sold),
+          };
+  })
+
+  
+
+  // console.log(processedData)
+
+  // Sort data by date
+  const sortedData = processedData.sort(
     (a, b) => new Date(a.date) - new Date(b.date)
   );
 
-  const totalRevenue = sortedData.reduce((sum, sale) => sum + sale.revenue, 0);
-  const totalCost = sortedData.reduce((sum, sale) => sum + sale.cost, 0);
-  const totalProfit = sortedData.reduce((sum, sale) => sum + sale.profit, 0);
-  const totalQuantity = sortedData.reduce(
-    (sum, sale) => sum + sale.quantity,
-    0
-  );
+    const totalRevenue = sortedData.reduce(
+      (sum, sale) => sum + sale.sales_revenue,
+      0
+    );
+    const totalCost = costs.reduce((sum, cost) => sum + cost.total_cost, 0);
+    const totalProfit = sortedData.reduce((sum, sale) => sum + sale.profit_amount, 0);
+    const totalQuantity = sortedData.reduce(
+      (sum, sale) => sum + sale.quantity_sold,
+      0
+    );
 
   return (
     <div className="space-y-6 p-4">
@@ -101,15 +109,15 @@ function SaleAnalytics() {
                 <tr key={sale.id} className="border-b">
                   <td className="p-2">{index + 1}</td>
                   <td className="p-2">{sale.date}</td>
-                  <td className="p-2 text-right">{sale.quantity}</td>
+                  <td className="p-2 text-right">{sale.quantity_sold}</td>
                   <td className="p-2 text-right">
-                    {formatCurrency(sale.revenue)}
+                    {formatCurrency(sale.sales_revenue)}
                   </td>
                   <td className="p-2 text-right">
                     {formatCurrency(sale.cost)}
                   </td>
                   <td className="p-2 text-right">
-                    {formatCurrency(sale.profit)}
+                    {formatCurrency(sale.profit_amount)}
                   </td>
                 </tr>
               ))}

@@ -1,12 +1,10 @@
 """
 This module defines the routes for the Flask application and serves as the entry point.
 """
-from flask import Flask, make_response, request,  abort, session, jsonify
+from flask import Flask, make_response, request, abort, session
 from config import db, app, api, flask_bcrypt
 from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost
-from werkzeug.exceptions import NotFound, Unauthorized
-from helpers import profit_by_product
 from decimal import Decimal
 
 # pw_hash = flask_bcrypt.generate_password_hash('hunter2')
@@ -129,9 +127,8 @@ api.add_resource(LogOut, '/logout')
 
 
 class UserSales(Resource):
-    # Returns all sales, revenue, and product data for authenticated user
+    # Returns profits and associated sales and cost data for the authenticated user.
     def get(self):
-        # Get user_id from the session
         user_id = session.get("user_id")
 
         if not user_id:
@@ -143,52 +140,22 @@ class UserSales(Resource):
         if not user:
             abort(404, "User not found")
 
-        # Retrieve the user's products
-        user_products = user.products
+        try:
+            user_profits = user.profits
 
-        # user.profits 
+            if not user_profits:
+                return make_response({"message": "No sale found for this user."}, 404)
 
-        if not user_products:
-            return make_response({"message": "No products found for this user."}, 404)
+            response_body = [profit.to_dict() for profit in user_profits]
 
-        # Initialize a response list to hold data for each product
-        products_data = []
+            return make_response(response_body, 200)
 
-        # profit.costs , profit.sales
-        for product in user_products:
-            # Get all sales and costs related to this product
-            sales = ProductSale.query.filter_by(product_id=product.id).all()
-            costs = Cost.query.filter_by(product_id=product.id).all()
+        except Exception as e:
+            db.session.rollback()
+            abort(500, f"An error occurred: {str(e)}")
 
-            # Serialize sales and costs data using only specific fields
-            sale_array = [
-                sale.to_dict(only=("id", "sale_date", "quantity_sold",
-                             "unit_sale_price", "item_revenue", "net_profit", "updated_at"))
-                for sale in sales
-            ]
+    # handle Product or Profit ? addition here with sales, cost, profit data.
 
-            cost_array = [
-                cost.to_dict(only=("id", "item_cost"))
-                for cost in costs
-            ]
-
-            # Structure data for each product with only the needed fields
-            product_data = product.to_dict(
-                only=("id", "description", "unit_value", "quantity", "purchased_at"))
-            product_data.update({"sales": sale_array, "costs": cost_array})
-
-            products_data.append(product_data)
-
-        # Define final response body with user and products data, selecting only specific fields for the user
-            response_body = [
-                user.to_dict(only=("id", "username", "name")),
-                *products_data  # Expanding products_data directly into the array
-            ]
-
-        return make_response(response_body, 200)
-    
-
-    # handle Product addition here with sales, cost, profit data.
     def post(self):
         # Get user_id from the session
         user_id = session.get("user_id")
@@ -196,7 +163,7 @@ class UserSales(Resource):
         if not user_id:
             abort(401, "User is not authenticated.")
         try:
-        # Retrieve the product data from the request JSON
+            # Retrieve the product data from the request JSON
             product_data = request.get_json()
 
             product_data["description"] = product_data["description"].upper()
@@ -213,14 +180,14 @@ class UserSales(Resource):
             db.session.commit()
 
             # Create a new ProductSale object
-            #validate if numbers are provided and digit
+            # validate if numbers are provided and digit
             if not all(isinstance(x, (int, float, Decimal)) for x in [
-                    product_data.get("quantity_sold"),
-                    product_data.get("unit_sale_price"),
-                    product_data.get("marketing_cost"),
-                    product_data.get("shipping_cost"),
-                    product_data.get("packaging_cost")
-                ]):
+                product_data.get("quantity_sold"),
+                product_data.get("unit_sale_price"),
+                product_data.get("marketing_cost"),
+                product_data.get("shipping_cost"),
+                product_data.get("packaging_cost")
+            ]):
                 abort(400, "Invalid data provided for sales, costs, or profit.")
 
             # Create a new Profit object
@@ -260,7 +227,6 @@ class UserSales(Resource):
             # Calculate profit amount
             profit_amount = total_sales - total_cost
 
-
             new_profit = Profit(
                 product_id=new_product.id,
                 profit_amount=profit_amount,
@@ -275,9 +241,8 @@ class UserSales(Resource):
         except Exception as e:
             abort(500, f"An error occurred: {str(e)}")
 
+    # handle Product details update
 
-
-    #handle Product details update
     def patch(self, product_id):
         user_id = session.get("user_id")
 
@@ -285,7 +250,8 @@ class UserSales(Resource):
             abort(401, "User is not authenticated.")
 
         # Check if the product exists
-        product = Product.query.filter_by(id=product_id, user_id=user_id).first()
+        product = Product.query.filter_by(
+            id=product_id, user_id=user_id).first()
 
         if not product:
             abort(404, "Product not found")
@@ -307,11 +273,9 @@ class UserSales(Resource):
 
         return make_response({"message": "Product updated successfully"}, 200)
 
-    #handle Product deletion.
-    
 
 # Add the resource to the API
-api.add_resource(UserSales, '/product_sales',
+api.add_resource(UserSales, '/user_sales',
                  '/product_sales/<int:product_id>')
 
 
@@ -354,9 +318,11 @@ class ProductByID(Resource):
 
         costs = [cost.to_dict() for cost in product.costs]
 
-        profits = [profit.to_dict(only=('id', 'margin', 'profit_amount')) for profit in product.profits]
+        profits = [profit.to_dict(only=('id', 'margin', 'profit_amount'))
+                   for profit in product.profits]
 
-        sales = [sale.to_dict(only=('unit_sale_price', 'quantity_sold', 'sale_date')) for sale in product.sales]
+        sales = [sale.to_dict(only=(
+            'unit_sale_price', 'quantity_sold', 'sale_date')) for sale in product.sales]
 
         # Construct the response body
         response_body = {
@@ -374,8 +340,6 @@ class ProductByID(Resource):
 
 
 api.add_resource(ProductByID, '/product/<int:id>')
-
-
 
 
 # this script runs the app

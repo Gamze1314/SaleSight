@@ -1,7 +1,8 @@
 from config import db, app, flask_bcrypt
 from models import User, Product, Profit, ProductSale, Cost
 from decimal import Decimal
-from helpers import total_revenue_for_sale, profit_by_product, calculate_profit_margin
+from helpers import update_profit_metrics
+
 
 # App context
 with app.app_context():
@@ -27,8 +28,8 @@ with app.app_context():
     print("user data seeded successfully")
 
     # Create products
-    product1 = Product(description='Product A')
-    product2 = Product(description='Product B')
+    product1 = Product(description='Product C')
+    product2 = Product(description='Product D')
     db.session.add_all([product1, product2])
     db.session.commit()
 
@@ -69,22 +70,9 @@ with app.app_context():
 
     profits = Profit.query.all()
     for profit in profits:
-        # Calculate total revenue using the sales_revenue hybrid property
-        total_revenue = sum(sale.sales_revenue for sale in profit.sales)
-
-        # Calculate total profit amount using the profit_amount hybrid property
-        total_profit_amount = sum(sale.profit_amount for sale in profit.sales)
-
-        # Calculate profit margin
-        # Avoid division by zero( if there is no sale.)
-        margin = (total_profit_amount / total_revenue *
-                100) if total_revenue > 0 else Decimal('0.00')
-
-        # Update the Profit amount and margin.
-        profit.profit_amount = total_profit_amount.quantize(Decimal('0.01'))
-        profit.margin = margin.quantize(Decimal('0.01'))
-
-
+        #update profit metrics with helper function
+        update_profit_metrics(profit)
+    
     db.session.commit()
 
     print("Profit records updated successfully")

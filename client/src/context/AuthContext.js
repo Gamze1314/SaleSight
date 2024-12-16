@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
           const user = await response.json();
           setCurrentUser(user);
           setIsAuthenticated(true);
-          navigate("/analytics");
+          navigate("/my_store");
           setError(""); // Clear any previous error
         }
       } catch (err) {
@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         setCurrentUser(data);
         setIsAuthenticated(true);
-        navigate('/analytics')
+        navigate('/my_store')
         setError(""); // Clear any previous error
       } else {
         const errorData = await response.json();
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(data);
         setIsAuthenticated(true);
         // navigate to products page or another.
-        // navigate("/analytics");
+        // navigate("/my_store");
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to sign up");

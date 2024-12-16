@@ -42,7 +42,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />, // Wrap protected routes with ProtectedRoute
         children: [
           {
-            path: "analytics",
+            path: "profit_center",
             element: (
                 <ProfitProvider>
                   <SalesProvider>
@@ -52,7 +52,7 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "products",
+            path: "my_store",
             element: (
               <SalesProvider>
                 <ProductsPage /> 

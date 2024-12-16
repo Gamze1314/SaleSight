@@ -11,9 +11,10 @@ export const SalesProvider = ({ children }) => {
   useEffect(() => {
     const fetchSalesData = async () => {
       try {
-        const res = await fetch("/product_sales");
+        const res = await fetch("/user_sales");
         if (res.ok) {
           const data = await res.json();
+          console.log(data);
           setSalesData(data);
         } else {
           throw new Error("Failed to fetch sales data");
@@ -26,6 +27,8 @@ export const SalesProvider = ({ children }) => {
 
     fetchSalesData();
   }, []);
+
+
 
   // Fetch product details based on IDs from salesData
   useEffect(() => {

@@ -29,62 +29,52 @@ def total_revenue_for_sale(sale):
             "Both unit_sale_price and quantity_sold must be valid numbers.")
 
 
-# helper functions used in seed data.
-def profit_by_product(revenue, total_cost):
-    profit_amount = revenue - total_cost
-    return profit_amount.quantize(Decimal('0.01'))
-
-
-# case; if profit is 0. or less than 0. ?
-# item is returned or loss.
-
-def calculate_profit_margin(profit_amount, revenue):
+def calculate_sale_profit_amount(sale):
     """
-    Calculate the profit margin given the profit amount and revenue.
-
+    Calculate the profit amount for a specific sale.
+    
     Args:
-        profit_amount (Decimal): The profit amount.
-        revenue (Decimal): The total revenue.
-
+        sale (ProductSale): The sale instance to calculate profit for
+    
     Returns:
-        Decimal: The profit margin rounded to two decimal places.
+        Decimal: The net profit amount for the sale
     """
-    if revenue == 0:
-        return Decimal('0.00')  # To avoid division by zero
+    # Calculate total revenue for the sale
+    total_revenue = sale.sales_revenue
 
-    margin = (profit_amount / revenue) * 100
-    return round(margin, 2)  # Round to 2 decimal places
+    # Calculate total cost for this sale instance
+    # Sum the total costs from all associated costs for the profit
+    total_cost = sum(cost.total_cost for cost in sale.profit.costs)
 
+    # Net profit: Revenue - Total Costs
+    net_profit = total_revenue - total_cost
 
-def update_profit_amount(product_id):
-    product = Product.query.get(product_id)
-    if not product:
-        return
-
-    # Calculate total sales revenue
-    total_sales = sum(sale.unit_sale_price *
-                      sale.quantity_sold for sale in product.sales)
-
-    # Calculate total costs
-    total_cost = sum(cost.marketing_cost + cost.shipping_cost +
-                     cost.packaging_cost for cost in product.costs)
-
-    # Calculate profit amount
-    profit_amount = total_sales - total_cost
-
-    # Update the Profit record
-    profit_record = Profit.query.filter_by(product_id=product_id).first()
-    if profit_record:
-        profit_record.profit_amount = profit_amount
-        db.session.commit()
+    # Quantize to 2 decimal places
+    return net_profit.quantize(Decimal('0.01'))
 
 
-# Adding a Cost:
+# update profit amount after each sale
+def update_profit_metrics(profit):
+    #if sale instance is created => updates profit amount and margin.
+    if profit.sales:
+        total_revenue = sum(sale.sales_revenue for sale in profit.sales)
 
-# When a cost is added, the function or POST request handler commits it to the database, and then calls update_profit_amount to recalculate the profit based on the associated product's sales and costs.
-# Adding a Product Sale:
+        # Calculate total profit amount using the profit_amount hybrid property
+        total_profit_amount = sum(sale.profit_amount for sale in profit.sales)
 
-# The add_product_sale function operates similarly for sales. It creates a new ProductSale, commits it, and recalculates the profit.
-# Updating Profit:
+        # Calculate profit margin
+        # Avoid division by zero( if there is no sale.)
+        margin = (total_profit_amount / total_revenue *
+                100) if total_revenue > 0 else Decimal('0.00')
 
-# The update_profit_amount function queries the Product, calculates total sales and costs, then updates or creates the Profit entry for that product.
+        # Update the Profit amount and margin.
+        profit.profit_amount = total_profit_amount.quantize(Decimal('0.01'))
+        profit.margin = margin.quantize(Decimal('0.01'))
+
+    else:
+        profit.profit_amount = Decimal('0.00')
+        profit.margin = Decimal('0.00')
+
+    db.session.commit()
+
+

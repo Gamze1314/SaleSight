@@ -19,16 +19,16 @@ function MainNavBar() {
       </div>
       <div className="flex space-x-6 mr-4">
         <NavLink
-          to="/analytics"
+          to="/profit_center"
           className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
         >
-          Sales Analytics
+          Profit Center
         </NavLink>
         <NavLink
-          to="/products"
+          to="/my_store"
           className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
         >
-          Products
+          My Store
         </NavLink>
         <NavLink
           to="/logout"

@@ -9,7 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import select, func
 from decimal import Decimal, InvalidOperation
 import re
-from helpers import total_revenue_for_sale
+from helpers import total_revenue_for_sale, calculate_sale_profit_amount
 
 # User has many products through Profit(Many-to-Many)
 # Product has many users through Profit(multiple users can own or access to products.)
@@ -22,15 +22,13 @@ from helpers import total_revenue_for_sale
 # Profit has many sales
 # Sale belongs to a profit.
 
-# if you delete a profit, delete associated cost and sale.
-
-# cascade- delete orphan.
+# if you delete a profit, deletes associated cost and sale records.
 
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules = ('-profits.user', '-password_hash',)
+    serialize_rules = ('-profits.user', '-password_hash')
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -95,7 +93,6 @@ class User(db.Model, SerializerMixin):
         return f'User {self.id}, {self.name} ,{self.username}, {self.created_at}, {self.updated_at}'
 
 
-
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
@@ -115,17 +112,14 @@ class Product(db.Model, SerializerMixin):
     users = association_proxy(
         'profits', 'user', creator=lambda p: Profit(product=p))
 
-
     # validate description
+
     @validates('description')
     def validate_description(self, key, value):
         if len(value) < 3 or len(value) > 100:
             raise ValueError(
                 'Description should be between 3 and 100 characters long.')
         return value
-    
-    #CALCULATE INVENTORY DYNAMICALLY
-    #QUANTITY_PURCHASED QUANTITY_SOLD
 
 
     def __repr__(self):
@@ -144,8 +138,9 @@ class Cost(db.Model, SerializerMixin):
     shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
     packaging_cost = db.Column(db.Numeric(10, 2), nullable=False)
 
-    #Cost belongs to a profit.
-    profit_id = db.Column(db.Integer, db.ForeignKey('profits.id'), nullable=False)
+    # Cost belongs to a profit.
+    profit_id = db.Column(db.Integer, db.ForeignKey(
+        'profits.id'), nullable=False)
 
     profit = db.relationship('Profit', back_populates='costs')
 
@@ -169,17 +164,18 @@ class Cost(db.Model, SerializerMixin):
         """
         Calculate the total cost including the Product unit value.
         """
-        #unit_value * purchased
+        # unit_value * purchased
         try:
             # Calculate total cost for the product_id linked to this Cost instance
             total_cost = Decimal(
                 self.marketing_cost) + Decimal(self.shipping_cost) + Decimal(self.packaging_cost)
 
             # Add the Product unit value
-            total_cost += Decimal(self.unit_value) * Decimal(self.quantity_purchased)
+            total_cost += Decimal(self.unit_value) * \
+                Decimal(self.quantity_purchased)
 
             return total_cost.quantize(Decimal('0.01'))
-        
+
         except (InvalidOperation, AttributeError) as e:
             raise ValueError(
                 "Calculation error: ensure values are numeric and product exists.")
@@ -201,19 +197,22 @@ class ProductSale(db.Model, SerializerMixin):
                           server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
-    
-    #sale belongs to a profit. 
-    profit_id = db.Column(db.Integer, db.ForeignKey('profits.id'), nullable=False)
+
+    # sale belongs to a profit.
+    profit_id = db.Column(db.Integer, db.ForeignKey(
+        'profits.id'), nullable=False)
 
     profit = db.relationship('Profit', back_populates='sales')
 
 
-    # validate quantity sold, min 1
     @validates('quantity_sold')
     def validate_quantity_sold(self, key, value):
+        # can be 0 or greater than 0.
+        if not isinstance(value, int):
+            raise TypeError('Quantity sold must be an integer.')
         if value < 1:
             raise ValueError('Quantity sold should be greater than 0.')
-        #check quantity sold does not exceed quantity purchased
+        # check quantity sold does not exceed quantity purchased
         if self.profit and self.profit.costs:
             total_purchased = sum(
                 cost.quantity_purchased for cost in self.profit.costs)
@@ -254,15 +253,8 @@ class ProductSale(db.Model, SerializerMixin):
     @hybrid_property
     def profit_amount(self):
         # Calculate the total item revenue for this sale instance
-        total_revenue = self.sales_revenue
+        return calculate_sale_profit_amount(self)
 
-        # calculate total cost for this sale instance
-        total_cost = sum(cost.total_cost for cost in self.profit.costs)
-
-        # Net profit: Revenue - Total Costs
-        net_profit = total_revenue - total_cost
-        return net_profit.quantize(Decimal('0.01'))
-    
     @hybrid_property
     def profit_margin(self):
         # Calculate the total item revenue for this sale instance
@@ -279,7 +271,8 @@ class ProductSale(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold},{self.profit_amount}, {self.profit_margin} {self.sale_date}, {self.updated_at}'
-    
+
+
 class Profit(db.Model, SerializerMixin):
     __tablename__ = 'profits'
 
@@ -295,7 +288,8 @@ class Profit(db.Model, SerializerMixin):
                            server_default=db.func.now())
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
-    # foreign keys to connect product, user and sales.
+
+    # foreign keys to connect product, user.
     product_id = db.Column(db.Integer, db.ForeignKey(
         'products.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
@@ -307,10 +301,12 @@ class Profit(db.Model, SerializerMixin):
     product = db.relationship('Product', back_populates='profits')
 
     # profit has many costs
-    costs = db.relationship('Cost', back_populates='profit')
+    costs = db.relationship(
+        'Cost', back_populates='profit', cascade='all, delete-orphan')
 
     # profit has many sales.
-    sales = db.relationship('ProductSale', back_populates='profit')
+    sales = db.relationship(
+        'ProductSale', back_populates='profit', cascade='all, delete-orphan')
 
     # validate profit amount
     @validates('profit_amount')
@@ -340,7 +336,5 @@ class Profit(db.Model, SerializerMixin):
             raise ValueError(f'{key} must have exactly 2 decimal places.')
         return value
 
-
     def __repr__(self):
         return f'Profit {self.id}, {self.profit_amount}, {self.margin}, {self.product_id}, {self.user_id}, {self.created_at}, {self.updated_at}'
-
