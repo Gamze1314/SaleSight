@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { ProfitContext } from "../context/ProfitContext";
+import { SalesContext } from "../context/SalesContext";
 import {
   ResponsiveContainer,
   LineChart,
@@ -10,33 +10,35 @@ import {
   Legend,
   Line,
 } from "recharts";
-import { formatCurrency } from "../utils";
+import { formatCurrency, formatProfitMargin, stringFormatter } from "../utils";
 
 function ProfitAnalytics() {
-  const { profitsData, error } = useContext(ProfitContext);
+  const { processedData, userData, userProducts, error } =
+    useContext(SalesContext);
+  const [user] = userData;
+  const { username } = user;
+
+  // format username , first letter capitalized, the rest lowercase
+  const formattedUsername = stringFormatter(username);
+
+  userProducts.forEach((product) => {
+    return stringFormatter(product.description);
+  });
 
   if (error) return <ErrorDisplay error={error} />;
 
-  // Process data to extract relevant details
-  const processedData =
-    profitsData?.map(({ created_at, profit_amount, margin, user, product }) => ({
-      created_at: new Date(created_at),
-      profit_amount: Number(profit_amount),
-      margin: Number(margin),
-      userName: user?.name || "Unknown User",
-      productDescription: product?.description || "Unknown Product",
-    })) || [];
-
-  console.log(processedData)
-
-  const firstRecord = processedData[0] || {};
+  const firstRecord = processedData || {};
 
   return (
     <div className="space-y-6 p-4">
       <h2 className="text-2xl font-semibold mb-6">Profit Analytics</h2>
       <p>Please click on the blue dot to display profit details.</p>
       <ChartContainer data={processedData} />
-      <RelatedInfo data={firstRecord} />
+      <RelatedInfo
+        data={firstRecord}
+        username={formattedUsername}
+        userProducts={userProducts}
+      />
     </div>
   );
 }
@@ -49,6 +51,17 @@ const ErrorDisplay = ({ error }) => (
   </div>
 );
 
+// Function to dynamically format tooltip values
+const formatMargin = (value, name) => {
+  if (name === "Profit Amount") {
+    return [formatCurrency(value), "Profit"];
+  }
+  if (name === "Margin") {
+    return [formatProfitMargin(value), "Margin"];
+  }
+  return value;
+};
+
 const ChartContainer = ({ data }) => (
   <div className="bg-white shadow rounded-lg p-6">
     <h4 className="text-lg font-medium mb-4">Profit Trend</h4>
@@ -57,16 +70,17 @@ const ChartContainer = ({ data }) => (
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
-            dataKey="created_at"
+            dataKey="sale_date"
+            // formats date related data.
             tickFormatter={(value) => new Date(value).toLocaleDateString()}
           />
-          <YAxis tickFormatter={formatCurrency} />
-          <Tooltip formatter={formatCurrency} />
+          <YAxis tickFormatter={formatMargin} />
+          <Tooltip formatter={formatMargin} />
           <Legend />
           {/* Display Profit Amount */}
           <Line
             type="monotone"
-            dataKey="profit_amount"
+            dataKey="profit"
             stroke="#2196F3"
             name="Profit Amount"
             strokeWidth={2}
@@ -100,13 +114,17 @@ const ChartContainer = ({ data }) => (
   </div>
 );
 
-const RelatedInfo = ({ data }) => (
+const RelatedInfo = ({ data, username, userProducts }) => (
   <div className="bg-white shadow rounded-lg p-6">
     <h4 className="text-lg font-medium mb-4">Related Information</h4>
     {data ? (
       <div>
-        <p className="font-medium">Sale Assistant: {data.userName}</p>
-        <p className="font-medium">Product Description: {data.productDescription}</p>
+        <p className="font-medium">Sale Assistant: {username}</p>
+        {/* return all product desc. from userProducts array. */}
+        <p className="font-medium">
+          Product Description:{" "}
+          {userProducts.map((product) => product.description).join(", ")}
+        </p>
       </div>
     ) : (
       <p>No data available</p>

@@ -9,19 +9,11 @@ import ProductForm from '../components/ProductForm'
 //renders NavBar and ProductsList.
 function ProductsPage() {
   const [showForm, setShowForm] = useState(false); // state to manage form visibility.
-  const [selectedProduct, setSelectedProduct] = useState(null); // state to store selected product
+  const [isChecked, setIsChecked] = useState(false);
 
-  // Handle product edit
-  const handleEdit = (product) => {
-    setSelectedProduct(product); // Set the selected product
-    setShowForm(true); // Show the form
-  };
-
-  // Handle product deletion
-  const handleDelete = (productId) => {
-    // Your deletion logic here (e.g., make an API call)
-    console.log("Product deleted:", productId);
-  };
+  const handleCheckboxChange = (e) => {
+        setIsChecked(e.target.checked);
+      };
 
   return (
     <div className="flex items-center justify-between w-full mt-10">
@@ -29,13 +21,13 @@ function ProductsPage() {
       {/* Content Wrapper */}
       <div className="w-full mt-6">
         <ProductToolBar setShowForm={setShowForm} />
-        {showForm && selectedProduct && (
+        {showForm && (
           <ProductForm
-            product={selectedProduct} // Pass the selected product details to ProductForm
-            onClose={() => setShowForm(false)} // Close the form when done
+            onClose={() => setShowForm(false)}
+            isChecked={isChecked}
           />
         )}
-        <ProductsList onEdit={handleEdit} onDelete={handleDelete} />
+        <ProductsList handleCheckboxChange={handleCheckboxChange} />
       </div>
     </div>
   );

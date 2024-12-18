@@ -129,10 +129,10 @@ class Product(db.Model, SerializerMixin):
 class Cost(db.Model, SerializerMixin):
     __tablename__ = 'costs'
 
-    serialize_rules = ('-profit.costs',)
+    serialize_rules = ('-profit.costs', 'total_cost')
 
     id = db.Column(db.Integer, primary_key=True)
-    quantity_purchased = db.Column(db.Numeric(10, 2), nullable=False)
+    quantity_purchased = db.Column(db.Integer, nullable=False)
     unit_value = db.Column(db.Numeric(10, 2), nullable=False)
     marketing_cost = db.Column(db.Numeric(10, 2), nullable=False)
     shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
@@ -145,7 +145,7 @@ class Cost(db.Model, SerializerMixin):
     profit = db.relationship('Profit', back_populates='costs')
 
     # validate costs
-    @validates('marketing_cost', 'shipping_cost', 'packaging_cost')
+    @validates('marketing_cost', 'shipping_cost', 'packaging_cost', 'unit_value')
     def validate_costs(self, key, value):
         if value >= 0:  # Allow 0 and positive values
             try:
@@ -188,7 +188,7 @@ class Cost(db.Model, SerializerMixin):
 class ProductSale(db.Model, SerializerMixin):
     __tablename__ = 'product_sales'
 
-    serialize_rules = ('-profit.sales',)
+    serialize_rules = ('-profit.sales','sales_revenue', 'profit_amount', 'profit_margin')
 
     id = db.Column(db.Integer, primary_key=True)
     unit_sale_price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -218,7 +218,7 @@ class ProductSale(db.Model, SerializerMixin):
                 cost.quantity_purchased for cost in self.profit.costs)
             total_sold = sum(sale.quantity_sold for sale in self.profit.sales)
             # Check if adding this sale would exceed total purchased quantity
-            if total_sold + value > total_purchased:
+            if total_sold + value >= total_purchased:
                 raise ValueError(
                     'Quantity sold cannot exceed total quantity purchased.')
         return value

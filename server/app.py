@@ -6,6 +6,7 @@ from config import db, app, api, flask_bcrypt
 from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost
 from decimal import Decimal
+from helpers import update_profit_metrics
 
 # pw_hash = flask_bcrypt.generate_password_hash('hunter2')
 # flask_bcrypt.check_password_hash(pw_hash, 'hunter2')  # returns True
@@ -164,78 +165,60 @@ class UserSales(Resource):
             abort(401, "User is not authenticated.")
         try:
             # Retrieve the product data from the request JSON
-            product_data = request.get_json()
+            data = request.get_json()
+            # {'description': 'p1', 'unit_value': 1, 'quantity': 1, 'marketing_cost': 1,
+            #     'shipping_cost': 1, 'packaging_cost': 11, 'unit_sale_price': 1, 'quantity_purchased': 1}
 
-            product_data["description"] = product_data["description"].upper()
+            data["description"] = data["description"].title()
 
             # Create a new Product object
             new_product = Product(
-                description=product_data.get("description"),
-                unit_value=product_data.get("unit_value"),
-                quantity=product_data.get("quantity")
+                description=data["description"]
             )
 
             # Add the new product to the database
             db.session.add(new_product)
             db.session.commit()
 
-            # Create a new ProductSale object
-            # validate if numbers are provided and digit
-            if not all(isinstance(x, (int, float, Decimal)) for x in [
-                product_data.get("quantity_sold"),
-                product_data.get("unit_sale_price"),
-                product_data.get("marketing_cost"),
-                product_data.get("shipping_cost"),
-                product_data.get("packaging_cost")
-            ]):
-                abort(400, "Invalid data provided for sales, costs, or profit.")
-
-            # Create a new Profit object
-
-            new_sale = ProductSale(
+            #create new profit entry (initial)
+            new_profit = Profit(
+                profit_amount=Decimal(0),
+                margin=Decimal(0),
                 product_id=new_product.id,
-                quantity_sold=product_data.get("quantity_sold"),
-                unit_sale_price=product_data.get("unit_sale_price")
+                user_id=user_id,
             )
 
-            # Add the new sale to the database
-            db.session.add(new_sale)
+            # Add the new profit to the database
+            db.session.add(new_profit)
             db.session.commit()
 
-            # Create a new Cost object
+            # create new cost record for the profit
             new_cost = Cost(
-                product_id=new_product.id,
-                marketing_cost=product_data.get("marketing_cost"),
-                shipping_cost=product_data.get("shipping_cost"),
-                packaging_cost=product_data.get("packaging_cost")
+                quantity_purchased=data["quantity_purchased"],
+                unit_value=data["unit_value"],
+                marketing_cost=data["marketing_cost"],
+                shipping_cost=data["shipping_cost"],
+                packaging_cost=data["packaging_cost"],
+                profit_id=new_profit.id
             )
 
             # Add the new cost to the database
             db.session.add(new_cost)
             db.session.commit()
 
-            # Calculate total sales revenue
-            total_sales = new_sale.unit_sale_price * new_sale.quantity_sold
-
-            # Calculate total costs
-            total_cost = (
-                new_cost.marketing_cost +
-                new_cost.shipping_cost +
-                new_cost.packaging_cost
+            # create new sale record for the profit
+            new_sale = ProductSale(
+                unit_sale_price=data["unit_sale_price"],
+                quantity_sold=data["quantity"],
+                profit_id=new_profit.id,
             )
 
-            # Calculate profit amount
-            profit_amount = total_sales - total_cost
-
-            new_profit = Profit(
-                product_id=new_product.id,
-                profit_amount=profit_amount,
-                margin=product_data.get('profit_margin'),
-                user_id=user_id,
-            )
-
-            db.session.add(new_profit)
+            # Add the new sale to the database
+            db.session.add(new_sale)
             db.session.commit()
+
+            # Update profit and cost data
+            update_profit_metrics(new_profit)
 
             return make_response({"message": "Product added successfully"}, 201)
         except Exception as e:
@@ -272,6 +255,11 @@ class UserSales(Resource):
         db.session.commit()
 
         return make_response({"message": "Product updated successfully"}, 200)
+    
+    # delete request handler here: deletes profit data with cost and sale only. 
+
+    def delete(self):
+        pass
 
 
 # Add the resource to the API
@@ -279,67 +267,47 @@ api.add_resource(UserSales, '/user_sales',
                  '/product_sales/<int:product_id>')
 
 
-# user_id, product_id
-class UserProfits(Resource):
-    # returns all profits for the products of authenticated user
-    def get(self):
-        # Get user_id from the session.
-        user_id = session["user_id"]
 
-        if not user_id:
-            abort(401, "User is not authenticated.")
+# class ProductByID(Resource):
+#     """
+#     Endpoint to retrieve product details along with associated costs, profits, and sales by ID.
+#     """
 
-        # Get all profit data for the sales
-        profit_data = Profit.query.filter_by(user_id=user_id).all()
+#     def get(self, id):
+#         # Query the product by ID
+#         product = Product.query.get(id)
 
-        response_body = [p.to_dict() for p in profit_data]
+#         # If the product doesn't exist, returns a 404 error
+#         if not product:
+#             abort(404, message="Product not found")
 
-        return make_response(response_body, 200)
+#         # Convert product details and related data to dictionaries
+#         product_data = product.to_dict()
 
+#         costs = [cost.to_dict() for cost in product.costs]
 
-api.add_resource(UserProfits, '/profits')
+#         profits = [profit.to_dict(only=('id', 'margin', 'profit_amount'))
+#                    for profit in product.profits]
 
+#         sales = [sale.to_dict(only=(
+#             'unit_sale_price', 'quantity_sold', 'sale_date')) for sale in product.sales]
 
-class ProductByID(Resource):
-    """
-    Endpoint to retrieve product details along with associated costs, profits, and sales by ID.
-    """
+#         # Construct the response body
+#         response_body = {
+#             "id": product_data["id"],
+#             "description": product_data["description"],
+#             "unit_value": product_data["unit_value"],
+#             "quantity": product_data["quantity"],
+#             "purchased_at": product_data["purchased_at"],
+#             "costs": costs,
+#             "profits": profits,
+#             "sales": sales
+#         }
 
-    def get(self, id):
-        # Query the product by ID
-        product = Product.query.get(id)
-
-        # If the product doesn't exist, returns a 404 error
-        if not product:
-            abort(404, message="Product not found")
-
-        # Convert product details and related data to dictionaries
-        product_data = product.to_dict()
-
-        costs = [cost.to_dict() for cost in product.costs]
-
-        profits = [profit.to_dict(only=('id', 'margin', 'profit_amount'))
-                   for profit in product.profits]
-
-        sales = [sale.to_dict(only=(
-            'unit_sale_price', 'quantity_sold', 'sale_date')) for sale in product.sales]
-
-        # Construct the response body
-        response_body = {
-            "id": product_data["id"],
-            "description": product_data["description"],
-            "unit_value": product_data["unit_value"],
-            "quantity": product_data["quantity"],
-            "purchased_at": product_data["purchased_at"],
-            "costs": costs,
-            "profits": profits,
-            "sales": sales
-        }
-
-        return make_response(response_body, 200)
+#         return make_response(response_body, 200)
 
 
-api.add_resource(ProductByID, '/product/<int:id>')
+# api.add_resource(ProductByID, '/product/<int:id>')
 
 
 # this script runs the app

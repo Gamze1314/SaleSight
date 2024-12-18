@@ -1,68 +1,105 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext , useMemo} from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 // useContext for addProduct
 import { SalesContext } from '../context/SalesContext'
+import { stringFormatter } from "../utils";
 
 
 // Validation Schemas
 const ValidationSchema = Yup.object().shape({
-  description: Yup.string().required("Description is required"),
+  // format description intial upper rest is lower. stringFormatter
+  description: Yup.string().required("Description is required")
+  .transform((value) => stringFormatter(value)),
   unit_value: Yup.number().required("Unit value is required"),
-  quantity: Yup.number().required("Quantity is required").min(1),
+  quantity: Yup.number().required("Quantity Sold is required").min(1),
   marketing_cost: Yup.number().required("Marketing cost is required"),
   shipping_cost: Yup.number().required("Shipping cost is required"),
   packaging_cost: Yup.number().required("Packaging cost is required"),
-  profit_margin: Yup.number().required("Profit margin is required"),
-  unit_sale_price: Yup.number().required("Unit sale price is required"),
-  quantity_sold: Yup.number().required("Quantity sold is required"),
+  unit_sale_price: Yup.number().required("Product sale price is required"),
+  quantity_purchased: Yup.number().required("Quantity Purchased is required"),
 });
 
-const ProductForm = ({ product, onClose }) => {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const { addProduct, updateProduct } = useContext(SalesContext);
+const ProductForm = ({ onClose, isChecked }) => {
+  const { addProduct, updateProduct, userProducts, saleCosts, userSales } =
+    useContext(SalesContext);
+
+  // Process the data once and store it , useMemo()
+  const processedData = useMemo(() => {
+    return userSales.map((sale) => {
+      const relevantCost = saleCosts.find(
+        (cost) => cost.profit_id === sale.profit_id
+      );
+
+      const productDescription =
+        userProducts.length > 0
+          ? stringFormatter(userProducts[0].description)
+          : "No product found";
+
+      return {
+        profitId: relevantCost?.profit_id,
+        description: productDescription,
+        unit_value: relevantCost?.unit_value,
+        quantity_purchased: relevantCost?.quantity_purchased,
+        quantity: sale.quantity_sold,
+        marketing_cost: relevantCost?.marketing_cost,
+        shipping_cost: relevantCost?.shipping_cost,
+        packaging_cost: relevantCost?.packaging_cost,
+        unit_sale_price: sale.unit_sale_price,
+        sale_date: sale.sale_date,
+      };
+    });
+  }, [userSales, saleCosts, userProducts]);
+
+  const relevantData =
+    isChecked && processedData.length > 0 ? processedData[0] : null;
 
   const formik = useFormik({
-    initialValues: {
-      // Initialize formik values with product data if available
-      description: product ? product.description : "",
-      unit_value: product ? product.unit_value : "",
-      quantity: product ? product.quantity : "",
-      marketing_cost: product ? product.marketing_cost : "",
-      shipping_cost: product ? product.shipping_cost : "",
-      packaging_cost: product ? product.packaging_cost : "",
-      profit_margin: product ? product.profit_margin : "",
-      unit_sale_price: product ? product.unit_sale_price : "",
-      quantity_sold: product ? product.quantity_sold : "",
-    },
+    initialValues:
+      isChecked && relevantData
+        ? {
+            description: relevantData.description || "",
+            unit_value: relevantData.unit_value || "",
+            quantity: relevantData.quantity || "",
+            marketing_cost: relevantData.marketing_cost || "",
+            shipping_cost: relevantData.shipping_cost || "",
+            packaging_cost: relevantData.packaging_cost || "",
+            unit_sale_price: relevantData.unit_sale_price || "",
+            quantity_purchased: relevantData.quantity_purchased || "",
+          }
+        : {
+            description: "",
+            unit_value: "",
+            quantity: "",
+            marketing_cost: "",
+            shipping_cost: "",
+            packaging_cost: "",
+            unit_sale_price: "",
+            quantity_purchased: "",
+          },
+    enableReinitialize: true,
     validationSchema: ValidationSchema,
     enableReinitialize: true, // Ensures the form gets reset when product data changes.
     onSubmit: (values) => {
-      // Sanitize values and set defaults
-      const sanitizedValues = Object.fromEntries(
-        Object.entries(values).map(([key, value]) => {
-          if (key === "quantity_sold" && value === "") {
-            return [key, 0]; // Default `quantity_sold` to 0
-          }
-          return [key, value === "" ? null : value]; // Replace empty strings with `null`
-        })
-      );
+
+      console.log(values)
+
       // If updating, call updateProduct, else add a new product
-      if (isUpdating && product) {
-        updateProduct(product.id, sanitizedValues); // Assuming product has an id
+      if (relevantData) {
+        updateProduct(values); // Assuming product has an id
       } else {
-        addProduct(sanitizedValues);
+        addProduct(values);
       }
       onClose();
     },
   });
 
   // Effect to clean up the form when switching to add mode or edit mode
-  useEffect(() => {
-    if (!product) {
-      formik.resetForm(); // Clear form when switching to add mode
-    }
-  }, [product]);
+  // useEffect(() => {
+  //   if (!relevantData) {
+  //     formik.resetForm(); // Clear form when switching to add mode
+  //   }
+  // }, [relevantData]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur">
@@ -74,33 +111,33 @@ const ProductForm = ({ product, onClose }) => {
         >
           ✕
         </button>
-
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-          {product ? "Edit Product Details" : "Add Product Details"}
+          {isChecked ? "Edit Profit Metrics" : "Add Sale and Product Information"}
         </h2>
         <form onSubmit={formik.handleSubmit}>
-          {/* BASIC FIELDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Description
-              </label>
-              <input
-                id="description"
-                name="description"
-                className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-                onChange={formik.handleChange}
-                value={formik.values.description}
-              />
-              {formik.errors.description && (
-                <p className="text-sm text-red-600">
-                  {formik.errors.description}
-                </p>
-              )}
-            </div>
+            {!isChecked ? (
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Product Description
+                </label>
+                <input
+                  id="description"
+                  name="description"
+                  className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+                  onChange={formik.handleChange}
+                  value={formik.values.description}
+                />
+                {formik.errors.description && (
+                  <p className="text-sm text-red-600">
+                    {formik.errors.description}
+                  </p>
+                )}
+              </div>
+            ) : null}
             <div>
               <label
                 htmlFor="unit_value"
@@ -127,7 +164,7 @@ const ProductForm = ({ product, onClose }) => {
                 htmlFor="quantity"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Quantity
+                Quantity Sold
               </label>
               <input
                 id="quantity"
@@ -196,7 +233,7 @@ const ProductForm = ({ product, onClose }) => {
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
-                value={formik.values.shipping_cost}
+                value={formik.values.packaging_cost}
               />
               {formik.errors.packaging_cost && (
                 <p className="text-sm text-red-600">
@@ -206,31 +243,10 @@ const ProductForm = ({ product, onClose }) => {
             </div>
             <div>
               <label
-                htmlFor="profit_margin"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Profit Margin %
-              </label>
-              <input
-                id="profit_margin"
-                name="profit_margin"
-                type="number"
-                className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-                onChange={formik.handleChange}
-                value={formik.values.profit_margin}
-              />
-              {formik.errors.profit_margin && (
-                <p className="text-sm text-red-600">
-                  {formik.errors.profit_margin}
-                </p>
-              )}
-            </div>
-            <div>
-              <label
                 htmlFor="unit_sale_price"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Unit Sales Price
+                Sale Price
               </label>
               <input
                 id="unit_sale_price"
@@ -248,22 +264,22 @@ const ProductForm = ({ product, onClose }) => {
             </div>
             <div>
               <label
-                htmlFor="quantity_sold"
+                htmlFor="quantity_purchased"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Quantity Sold
+                Quantity Purchased
               </label>
               <input
-                id="quantity_sold"
-                name="quantity_sold"
+                id="quantity_purchased"
+                name="quantity_purchased"
                 type="number"
                 className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
                 onChange={formik.handleChange}
-                value={formik.values.quantity_sold}
+                value={formik.values.quantity_purchased}
               />
-              {formik.errors.quantity_sold && (
+              {formik.errors.quantity_purchased && (
                 <p className="text-sm text-red-600">
-                  {formik.errors.quantity_sold}
+                  {formik.errors.quantity_purchased}
                 </p>
               )}
             </div>

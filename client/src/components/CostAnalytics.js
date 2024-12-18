@@ -13,7 +13,7 @@ import {
 import { formatCurrency } from "../utils";
 
 function CostAnalytics() {
-  const { salesData, error } = useContext(SalesContext);
+  const { salesData, processedData, error } = useContext(SalesContext);
 
   if (error) {
     // Display only the message part of the error
@@ -30,28 +30,8 @@ function CostAnalytics() {
     return <div>No data available.</div>;
   }
 
-  // Extract user and products from salesData
-  const user = salesData[0];
-  const products = salesData.slice(1); // Remaining elements are products
+  // process data to calculate total cost and revenue for all the sales.
 
-  // Process sales data
-  const processedData = [];
-
-  products.forEach((product) => {
-    product.sales.forEach((sale, index) => {
-      const totalCost = product.costs.reduce(
-        (acc, cost) => acc + parseFloat(cost.item_cost),
-        0
-      );
-      const revenue = parseFloat(sale.item_revenue);
-
-      processedData.push({
-        date: `Sale ${index + 1}`, // Placeholder date
-        revenue: revenue,
-        cost: totalCost,
-      });
-    });
-  });
 
   return (
     <div className="space-y-6 p-4">

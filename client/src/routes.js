@@ -8,7 +8,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import { AuthProvider } from "./context/AuthContext";
 import { SalesProvider } from "./context/SalesContext";
-import { ProfitProvider } from "./context/ProfitContext";
 import ProductsPage from "./pages/ProductsPage"
 
 // Create router configuration
@@ -44,11 +43,9 @@ const router = createBrowserRouter([
           {
             path: "profit_center",
             element: (
-                <ProfitProvider>
                   <SalesProvider>
                     <AnalyticsPage /> {/* Wrap App with AuthProvider */}
                   </SalesProvider>
-                </ProfitProvider>
             ),
           },
           {

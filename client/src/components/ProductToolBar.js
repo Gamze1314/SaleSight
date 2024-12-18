@@ -1,25 +1,20 @@
 // add new product and filtering options here.
-import React, { useState } from "react";
-
 function ProductToolBar( { setShowForm }) {
 
+  // function to handle adding new sale.
 
-  // function to handle adding new product.
-
-  const handleAddProduct = () => {
+  const handleAddProfit = () => {
     setShowForm(true);
   };
-
-
 
   return (
     <div className="bg-gray-100 p-4 shadow-md flex items-center justify-between w-full rounded-md mt-10 mb-10">
       {/* Button to Add Product */}
       <button 
       className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-      onClick={handleAddProduct}
+      onClick={handleAddProfit}
       >
-        Add Product
+        Manage Profit Center
       </button>
 
       {/* Filter Options */}

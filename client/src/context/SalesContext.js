@@ -4,7 +4,6 @@ export const SalesContext = createContext();
 
 export const SalesProvider = ({ children }) => {
   const [salesData, setSalesData] = useState([]);
-  const [productDetails, setProductDetails] = useState([]); // State to hold product details
   const [error, setError] = useState(null);
 
   // Fetch initial sales data
@@ -14,7 +13,6 @@ export const SalesProvider = ({ children }) => {
         const res = await fetch("/user_sales");
         if (res.ok) {
           const data = await res.json();
-          console.log(data);
           setSalesData(data);
         } else {
           throw new Error("Failed to fetch sales data");
@@ -28,33 +26,38 @@ export const SalesProvider = ({ children }) => {
     fetchSalesData();
   }, []);
 
+    const userSales = salesData.flatMap((profitData) => profitData.sales || []);
+    const saleCosts = salesData.flatMap((profitData) => profitData.costs || []);
+    const userData = salesData.flatMap((profitData) => profitData.user || []);
+    //user products
+    const userProducts = salesData.flatMap((profitData) => profitData.product || []);
+  
 
+    // Process sales data
+    const processedData = userSales.map((sale) => {
+      const relevantCosts = saleCosts.filter(
+        (cost) => cost.profit_id === sale.profit_id
+      );
+      const totalCost = relevantCosts.reduce(
+        (acc, cost) => acc + parseFloat(cost.total_cost || 0),
+        0
+      );
 
-  // Fetch product details based on IDs from salesData
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      // if (!salesData || salesData.length === 0) return;
+      const revenue = parseFloat(sale.sales_revenue || 0);
+      const profit = revenue - totalCost;
 
-      const productIds = salesData.slice(1).map((product) => product.id); // Extract product IDs
-      try {
-        const productDetailPromises = productIds.map(async (id) => {
-          const res = await fetch(`/product/${id}`);
-          if (!res.ok) {
-            throw new Error(`Failed to fetch details for product ID: ${id}`);
-          }
-          return await res.json();
-        });
+      return {
+        id: sale.id,
+        date: new Date(sale.sale_date).toLocaleDateString(),
+        revenue,
+        margin: sale.profit_margin,
+        cost: totalCost,
+        profit,
+        quantity: Number(sale.quantity_sold || 0),
+        sale_date: sale.sale_date
+      };
+    });
 
-        const details = await Promise.all(productDetailPromises);
-        setProductDetails(details);
-      } catch (err) {
-        setError(err.message);
-        console.error(err);
-      }
-    };
-
-    fetchProductDetails();
-  }, [salesData]);
 
   // Function to clear the error state
   const clearError = () => {
@@ -62,25 +65,15 @@ export const SalesProvider = ({ children }) => {
   };
 
 
-  // API POST request for new product addition. /products
+// API POST request for new product, sale, profit, and cost addition
 const addProduct = async (values) => {
   try {
-    // Sanitize values to handle empty fields
-    const sanitizedValues = Object.fromEntries(
-      Object.entries(values).map(([key, value]) => {
-        if (key === "quantity_sold" && value === "") {
-          return [key, 0]; // Default `quantity_sold` to 0
-        }
-        return [key, value === "" ? null : value];
-      })
-    );
-
-    const response = await fetch("/product_sales", {
+    const response = await fetch("/user_sales", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(sanitizedValues),
+      body: JSON.stringify(values),
     });
 
     if (!response.ok) {
@@ -89,7 +82,6 @@ const addProduct = async (values) => {
     const data = await response.json();
     console.log("Product added successfully:", data);
     // update state 
-    setProductDetails((prevDetails) => [...prevDetails, data]);
     setSalesData((prevSales) => [...prevSales, { id: data.id, ...data }]);
   } catch (error) {
     console.error("Error adding product:", error);
@@ -98,34 +90,33 @@ const addProduct = async (values) => {
 
 
 
-const updateProduct = async (productId, updatedProductData) => {
-  try {
-    // Replace with the actual API endpoint, including the productId in the URL
-    const response = await fetch(`/product_sales/${productId}`, {
-      method: "PATCH", // Use PATCH for partial updates
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedProductData), // Sending the updated product data
-    });
-    if (!response.ok) {
-      throw new Error("Failed to update product");
-    }
+// const updateProduct = async (productId, updatedProductData) => {
+//   try {
+//     // Replace with the actual API endpoint, including the productId in the URL
+//     const response = await fetch(`/product_sales/${productId}`, {
+//       method: "PATCH", // Use PATCH for partial updates
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(updatedProductData), // Sending the updated product data
+//     });
+//     if (!response.ok) {
+//       throw new Error("Failed to update product");
+//     }
 
-    const data = await response.json();
-    console.log("Product updated successfully:", data);
-    //state updating logic here if needed
-    //  update your products list or trigger a refresh
-  } catch (error) {
-    console.error("Error updating product:", error.message);
-  }
-};
-
+//     const data = await response.json();
+//     console.log("Product updated successfully:", data);
+//     //state updating logic here if needed
+//     //  update your products list or trigger a refresh
+//   } catch (error) {
+//     console.error("Error updating product:", error.message);
+//   }
+// };
 
 
   return (
     <SalesContext.Provider
-      value={{ salesData, productDetails, error, clearError, addProduct, updateProduct }}
+      value={{ salesData, processedData, userData, userProducts, userSales, saleCosts, error, clearError, addProduct }}
     >
       {children}
     </SalesContext.Provider>

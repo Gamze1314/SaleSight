@@ -3,7 +3,7 @@ import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
 function SaleAnalytics() {
-  const { salesData, error } = useContext(SalesContext);
+  const { salesData, processedData, error } = useContext(SalesContext);
 
   if (error) {
     // Use error.message to display only the message part of the error
@@ -14,50 +14,19 @@ function SaleAnalytics() {
     return <div>No data available.</div>;
   }
 
-  // Extract user and products from salesData
-  // const user = salesData[0];
-  // const products = salesData.slice(1); // Remaining elements are products
-
-  // const { user, products, costs, user_sales } = salesData;
-
-  // console.log(user, products, costs, user_sales);
-
-    const user = salesData[0];
-    // const userProducts = salesData[2];
-    const costs = salesData[3];
-    const userSales = salesData[4];
-
-    const username = user?.user?.username || "Unknown User";
-
-  // Process sales data
-  const processedData = userSales.map((sale) => {
-          return {
-            id: sale.id,
-            date: new Date(sale.sale_date).toLocaleDateString(),
-            sales_revenue: sale.sales_revenue,
-            profit_amount: sale.profit_amount,
-            profit_margin: sale.profit_margin,
-            quantity_sold: Number(sale.quantity_sold),
-          };
-  })
-
-  
-
-  // console.log(processedData)
-
   // Sort data by date
   const sortedData = processedData.sort(
     (a, b) => new Date(a.date) - new Date(b.date)
   );
 
     const totalRevenue = sortedData.reduce(
-      (sum, sale) => sum + sale.sales_revenue,
+      (sum, sale) => sum + sale.revenue,
       0
     );
-    const totalCost = costs.reduce((sum, cost) => sum + cost.total_cost, 0);
-    const totalProfit = sortedData.reduce((sum, sale) => sum + sale.profit_amount, 0);
+    const totalCost = sortedData.reduce((sum, sale) => sum + sale.cost, 0);
+    const totalProfit = sortedData.reduce((sum, sale) => sum + sale.profit, 0);
     const totalQuantity = sortedData.reduce(
-      (sum, sale) => sum + sale.quantity_sold,
+      (sum, sale) => sum + sale.quantity,
       0
     );
 
@@ -109,16 +78,10 @@ function SaleAnalytics() {
                 <tr key={sale.id} className="border-b">
                   <td className="p-2">{index + 1}</td>
                   <td className="p-2">{sale.date}</td>
-                  <td className="p-2 text-right">{sale.quantity_sold}</td>
-                  <td className="p-2 text-right">
-                    {formatCurrency(sale.sales_revenue)}
-                  </td>
-                  <td className="p-2 text-right">
-                    {formatCurrency(sale.cost)}
-                  </td>
-                  <td className="p-2 text-right">
-                    {formatCurrency(sale.profit_amount)}
-                  </td>
+                  <td className="p-2 text-right">{sale.quantity}</td>
+                  <td className="p-2 text-right">{formatCurrency(sale.revenue)}</td>
+                  <td className="p-2 text-right">{formatCurrency(sale.cost)}</td>
+                  <td className="p-2 text-right">{formatCurrency(sale.profit)}</td>
                 </tr>
               ))}
             </tbody>
