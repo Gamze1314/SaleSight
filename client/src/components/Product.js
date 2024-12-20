@@ -1,24 +1,51 @@
-import React from "react";
 
-function Product({ productData, handleCheckboxChange }) {
+
+function Product({ profit, index , setSelectedProductId, setSelectedOption, selectedOption }) {
+  // const [selectedOption, setSelectedOption] = useState("none");
+
+  console.log(profit.profitId, profit.productId)
+
+
+  // if view_sales => displayes the product sales.
+  // if edit profit_metrics => shows product's
+
+    const handleSelect = (event) => {
+      // on every option selection, state is being updated with product/profit data.
+      const value = event.target.value;
+      setSelectedOption(value);
+
+      if (value === "view_sales") {
+        setSelectedProductId(profit.productId);
+      } else {
+        setSelectedProductId(null); // Reset when another option is selected
+      }
+    };
+
+
 
   return (
-    <>
-      <tr className="border-b">
-        {/* Checkbox for selection */}
-        <td className="p-3 text-center">
-          <input
-            type="checkbox"
-            className="form-checkbox h-4 w-4 text-blue-600"
-            onChange={handleCheckboxChange}
-          />
-        </td>
-        <td className="p-3 text-center">{productData.description}</td>
-        <td className="p-3 text-center">${productData.salesRevenue || "N/A"}</td>
-        <td className="p-3 text-center">{productData.inventory || "N/A"}</td>
-        <td className="p-3 text-center">{productData.quantitySold}</td>
-      </tr>
-    </>
+    <tr className="border-b">
+      <td className="p-3 text-left">
+        <span className="font-bold mr-2">{index + 1}. &nbsp;</span>
+        {profit.description}
+      </td>
+      <td className="p-3 text-left">${profit.total_sales_revenue}</td>
+      <td className="p-3 text-left">{profit.quantity_purchased}</td>
+      <td className="p-3 text-left">{profit.quantitySold}</td>
+      <td>
+        <select
+          className="h-10 w-full rounded border border-solid border-neutral-300 px-4 text-sm"
+          onChange={handleSelect}
+          value={selectedOption} // Controlled component
+        >
+          <option value="none">Select</option>
+          <option value="view_sales">View Sales</option>
+          <option value="add_sale">Add New Sale</option>
+        </select>
+      </td>
+      <td>
+      </td>
+    </tr>
   );
 }
 

@@ -1,4 +1,4 @@
-import React, { useContext , useMemo} from "react";
+import React, { useContext } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 // useContext for addProduct
@@ -20,39 +20,12 @@ const ValidationSchema = Yup.object().shape({
   quantity_purchased: Yup.number().required("Quantity Purchased is required"),
 });
 
-const ProductForm = ({ onClose, isChecked }) => {
-  const { addProduct, updateProduct, userProducts, saleCosts, userSales } =
+const ProductForm = ({ onClose, isChecked, productPageData }) => {
+  const { addProduct, updateProfitMetrics, salesData } =
     useContext(SalesContext);
 
-  // Process the data once and store it , useMemo()
-  const processedData = useMemo(() => {
-    return userSales.map((sale) => {
-      const relevantCost = saleCosts.find(
-        (cost) => cost.profit_id === sale.profit_id
-      );
-
-      const productDescription =
-        userProducts.length > 0
-          ? stringFormatter(userProducts[0].description)
-          : "No product found";
-
-      return {
-        profitId: relevantCost?.profit_id,
-        description: productDescription,
-        unit_value: relevantCost?.unit_value,
-        quantity_purchased: relevantCost?.quantity_purchased,
-        quantity: sale.quantity_sold,
-        marketing_cost: relevantCost?.marketing_cost,
-        shipping_cost: relevantCost?.shipping_cost,
-        packaging_cost: relevantCost?.packaging_cost,
-        unit_sale_price: sale.unit_sale_price,
-        sale_date: sale.sale_date,
-      };
-    });
-  }, [userSales, saleCosts, userProducts]);
-
   const relevantData =
-    isChecked && processedData.length > 0 ? processedData[0] : null;
+    isChecked && productPageData.length > 0 ? productPageData : null;
 
   const formik = useFormik({
     initialValues:
@@ -81,25 +54,18 @@ const ProductForm = ({ onClose, isChecked }) => {
     validationSchema: ValidationSchema,
     enableReinitialize: true, // Ensures the form gets reset when product data changes.
     onSubmit: (values) => {
-
-      console.log(values)
-
-      // If updating, call updateProduct, else add a new product
       if (relevantData) {
-        updateProduct(values); // Assuming product has an id
+        // if isChecked true, the user updates the profit metrics.(product selected)
+        // add profit id to edit.
+        values.profit_id = relevantData.profitId;
+        // update the product metrics
+        updateProfitMetrics(values, values.profit_id);
       } else {
         addProduct(values);
       }
       onClose();
     },
   });
-
-  // Effect to clean up the form when switching to add mode or edit mode
-  // useEffect(() => {
-  //   if (!relevantData) {
-  //     formik.resetForm(); // Clear form when switching to add mode
-  //   }
-  // }, [relevantData]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur">
@@ -112,7 +78,9 @@ const ProductForm = ({ onClose, isChecked }) => {
           ✕
         </button>
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-          {isChecked ? "Edit Profit Metrics" : "Add Sale and Product Information"}
+          {isChecked
+            ? "Edit Profit Metrics"
+            : "Add Sale and Product Information"}
         </h2>
         <form onSubmit={formik.handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -146,8 +146,26 @@ class UserSales(Resource):
 
             if not user_profits:
                 return make_response({"message": "No sale found for this user."}, 404)
+            
+            #update profit.product => return object key => value.
 
-            response_body = [profit.to_dict() for profit in user_profits]
+            # wrap it in an array.
+
+            response_body = []
+            for profit in user_profits:
+                profit_dict = profit.to_dict()
+
+                if profit.product:
+                    profit_dict["product"] = [profit.product.to_dict(only=('id', 'description'))]
+
+                sales_data = [sale.to_dict() for sale in profit.sales] if profit.sales else []
+                cost_data = [cost.to_dict()
+                             for cost in profit.costs] if profit.costs else []
+
+                profit_dict["sales"] = sales_data
+                profit_dict["costs"] = cost_data
+
+                response_body.append(profit_dict)
 
             return make_response(response_body, 200)
 
@@ -180,7 +198,7 @@ class UserSales(Resource):
             db.session.add(new_product)
             db.session.commit()
 
-            #create new profit entry (initial)
+            # create new profit entry (initial)
             new_profit = Profit(
                 profit_amount=Decimal(0),
                 margin=Decimal(0),
@@ -220,94 +238,99 @@ class UserSales(Resource):
             # Update profit and cost data
             update_profit_metrics(new_profit)
 
-            return make_response({"message": "Product added successfully"}, 201)
+            response_body = [new_profit.to_dict()]
+
+            return make_response(response_body, 201)
         except Exception as e:
             abort(500, f"An error occurred: {str(e)}")
 
     # handle Product details update
 
-    def patch(self, product_id):
+    def patch(self, profit_id):
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+        
+        try:
+            # Get the update data from the request
+            data = request.get_json()
+
+            # breakpoint()
+            data["profit_id"] = profit_id
+
+            # product, profit, sale, cost patch request handler
+            profit = Profit.query.filter_by(
+                id=profit_id, user_id=user_id).first()
+
+            if not profit:
+                abort(404, "Profit not found")
+
+            # Update sale and cost data
+
+            relatedCosts = Cost.query.filter_by(profit_id=profit_id).all()
+
+            if not relatedCosts:
+                abort(404, "Cost not found")
+
+            for cost in relatedCosts:
+                data["unit_value"] = cost.unit_value
+                data["quantity"] = cost.quantity_sold
+                data["marketing_cost"] = cost.marketing_cost
+                data["shipping_cost"] = cost.shipping_cost
+                data["packaging_cost"] = cost.packaging_cost
+
+                db.session.commit()
+
+            #sales
+            relatedSales = ProductSale.query.filter_by(profit_id=profit_id).all()
+
+            if not relatedSales:
+                abort(404, "Sale not found")
+
+            for sale in relatedSales:
+                data["unit_sale_price"] = sale.unit_sale_price
+                data["quantity_sold"] = sale.quantity_sold
+
+                db.session.commit()
+
+            # Update profit metrics.
+            update_profit_metrics(profit)
+
+            return make_response({"message": "Product details updated successfully"}, 200)
+        
+        except Exception as e:
+            abort(500, f"An error occurred: {str(e)}")
+
+
+    # delete request handler here: deletes profit data with cost and sale only.
+
+    def delete(self, profit_id):
         user_id = session.get("user_id")
 
         if not user_id:
             abort(401, "User is not authenticated.")
 
-        # Check if the product exists
-        product = Product.query.filter_by(
-            id=product_id, user_id=user_id).first()
+        try:
+            #find profit by id
+            profit = Profit.query.filter_by(id=profit_id, user_id=user_id).first()
 
-        if not product:
-            abort(404, "Product not found")
+            if not profit:
+                abort(404, "Profit not found")
 
-        # Get the update data from the request
-        product_data = request.get_json()
+            # delete profit (cascade all( sale, cost))
+            db.session.delete(profit)
+            db.session.commit()
 
-        # Update fields
-        if 'description' in product_data:
-            # Ensure description is uppercase
-            product.description = product_data['description'].upper()
-        if 'unit_value' in product_data:
-            product.unit_value = product_data['unit_value']
-        if 'quantity' in product_data:
-            product.quantity = product_data['quantity']
-
-            # Commit the changes to the database
-        db.session.commit()
-
-        return make_response({"message": "Product updated successfully"}, 200)
-    
-    # delete request handler here: deletes profit data with cost and sale only. 
-
-    def delete(self):
-        pass
+            return make_response({"message": "Product deleted successfully"}, 200)
+        
+        except Exception as e:
+            abort(500, f"An error occurred: {str(e)}")
 
 
 # Add the resource to the API
 api.add_resource(UserSales, '/user_sales',
-                 '/product_sales/<int:product_id>')
-
-
-
-# class ProductByID(Resource):
-#     """
-#     Endpoint to retrieve product details along with associated costs, profits, and sales by ID.
-#     """
-
-#     def get(self, id):
-#         # Query the product by ID
-#         product = Product.query.get(id)
-
-#         # If the product doesn't exist, returns a 404 error
-#         if not product:
-#             abort(404, message="Product not found")
-
-#         # Convert product details and related data to dictionaries
-#         product_data = product.to_dict()
-
-#         costs = [cost.to_dict() for cost in product.costs]
-
-#         profits = [profit.to_dict(only=('id', 'margin', 'profit_amount'))
-#                    for profit in product.profits]
-
-#         sales = [sale.to_dict(only=(
-#             'unit_sale_price', 'quantity_sold', 'sale_date')) for sale in product.sales]
-
-#         # Construct the response body
-#         response_body = {
-#             "id": product_data["id"],
-#             "description": product_data["description"],
-#             "unit_value": product_data["unit_value"],
-#             "quantity": product_data["quantity"],
-#             "purchased_at": product_data["purchased_at"],
-#             "costs": costs,
-#             "profits": profits,
-#             "sales": sales
-#         }
-
-#         return make_response(response_body, 200)
-
-
-# api.add_resource(ProductByID, '/product/<int:id>')
+                 '/user_sales/<int:profit_id>')
 
 
 # this script runs the app

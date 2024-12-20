@@ -58,7 +58,7 @@ function SaleAnalytics() {
         </div>
       </div>
 
-      {/* Sales Details Table */}
+      {/* Sales Details Table
       <div className="bg-white shadow rounded-lg p-6">
         <h4 className="text-lg font-medium mb-4">Sales Details</h4>
         <div className="overflow-x-auto">
@@ -87,7 +87,7 @@ function SaleAnalytics() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

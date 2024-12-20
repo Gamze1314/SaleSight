@@ -13,6 +13,7 @@ import {
 import { formatCurrency, formatProfitMargin, stringFormatter } from "../utils";
 
 function ProfitAnalytics() {
+  // userProducts used to displayed all product descriptions on Related Information.
   const { processedData, userData, userProducts, error } =
     useContext(SalesContext);
   const [user] = userData;
