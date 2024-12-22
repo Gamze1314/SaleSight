@@ -6,15 +6,15 @@ SaleSight is a full-stack web application designed to empower businesses by stre
 
 * Key Highlight: SaleSight provides users with clear insights into their sales and profit data, enabling data-driven decision-making. The Profit Center page is the hub for understanding your business's financial health.
 
-Profit Center Features:
+#### Profit Center Features:
 
-Data Insights: Access metrics like Total Cost, Total Revenue, Total Items Sold, and Total Profit in a consolidated view.
+* Data Insights: Access metrics like Total Cost, Total Revenue, Total Items Sold, and Total Profit in a consolidated view.
 
-Detailed Reports: Dive deeper into product-specific sales and profit information.
+* Detailed Reports: Dive deeper into product-specific sales and profit information.
 
-Dynamic Interaction: Add new profit data and monitor updates in real-time.
+* Dynamic Interaction: Add new profit data and monitor updates in real-time.
 
-Features
+### Features
 
 User authentication and session management
 
