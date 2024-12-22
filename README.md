@@ -1,4 +1,4 @@
-# SaleSight Project
+# SaleSight App
 
 ### Overview
 
