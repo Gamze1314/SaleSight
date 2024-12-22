@@ -15,14 +15,6 @@ import { formatCurrency } from "../utils";
 function CostAnalytics() {
   const { salesData, processedData, error } = useContext(SalesContext);
 
-
-  // if (!salesData || salesData.length === 0) {
-  //   return <div>No data available.</div>;
-  // }
-
-  // process data to calculate total cost and revenue for all the sales.
-
-
   return (
     <div className="space-y-6 p-4">
       {error && <div className="text-red-500 mb-4">{error.message}</div>}

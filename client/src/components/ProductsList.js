@@ -40,7 +40,7 @@ function ProductsList({ onOptionSelect }) {
           {productPageData.length === 0 ? (
             <tr>
               <td colSpan="5" className="text-center">
-                No products found.
+                No products and sales data found.
               </td>
             </tr>
           ) : (

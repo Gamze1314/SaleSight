@@ -146,8 +146,8 @@ class UserSales(Resource):
 
             if not user_profits:
                 return make_response({"message": "No sale found for this user."}, 404)
-            
-            #update profit.product => return object key => value.
+
+            # update profit.product => return object key => value.
 
             # wrap it in an array.
 
@@ -156,9 +156,11 @@ class UserSales(Resource):
                 profit_dict = profit.to_dict()
 
                 if profit.product:
-                    profit_dict["product"] = [profit.product.to_dict(only=('id', 'description'))]
+                    profit_dict["product"] = [
+                        profit.product.to_dict(only=('id', 'description'))]
 
-                sales_data = [sale.to_dict() for sale in profit.sales] if profit.sales else []
+                sales_data = [sale.to_dict()
+                              for sale in profit.sales] if profit.sales else []
                 cost_data = [cost.to_dict()
                              for cost in profit.costs] if profit.costs else []
 
@@ -184,8 +186,6 @@ class UserSales(Resource):
         try:
             # Retrieve the product data from the request JSON
             data = request.get_json()
-            # {'description': 'p1', 'unit_value': 1, 'quantity': 1, 'marketing_cost': 1,
-            #     'shipping_cost': 1, 'packaging_cost': 11, 'unit_sale_price': 1, 'quantity_purchased': 1}
 
             data["description"] = data["description"].title()
 
@@ -251,7 +251,7 @@ class UserSales(Resource):
 
         if not user_id:
             abort(401, "User is not authenticated.")
-        
+
         try:
             # Get the update data from the request
             data = request.get_json()
@@ -282,8 +282,9 @@ class UserSales(Resource):
 
                 db.session.commit()
 
-            #sales
-            relatedSales = ProductSale.query.filter_by(profit_id=profit_id).all()
+            # sales
+            relatedSales = ProductSale.query.filter_by(
+                profit_id=profit_id).all()
 
             if not relatedSales:
                 abort(404, "Sale not found")
@@ -298,10 +299,9 @@ class UserSales(Resource):
             update_profit_metrics(profit)
 
             return make_response({"message": "Product details updated successfully"}, 200)
-        
+
         except Exception as e:
             abort(500, f"An error occurred: {str(e)}")
-
 
     # delete request handler here: deletes profit data with cost and sale only.
 
@@ -312,8 +312,9 @@ class UserSales(Resource):
             abort(401, "User is not authenticated.")
 
         try:
-            #find profit by id
-            profit = Profit.query.filter_by(id=profit_id, user_id=user_id).first()
+            # find profit by id
+            profit = Profit.query.filter_by(
+                id=profit_id, user_id=user_id).first()
 
             if not profit:
                 abort(404, "Profit not found")
@@ -323,7 +324,7 @@ class UserSales(Resource):
             db.session.commit()
 
             return make_response({"message": "Product deleted successfully"}, 200)
-        
+
         except Exception as e:
             abort(500, f"An error occurred: {str(e)}")
 
@@ -331,7 +332,6 @@ class UserSales(Resource):
 # Add the resource to the API
 api.add_resource(UserSales, '/user_sales',
                  '/user_sales/<int:profit_id>')
-
 
 
 # Update profit metrics and profit_amount by productId (add new sale functionality)
@@ -344,7 +344,7 @@ class UpdateProductSales(Resource):
             abort(401, "User is not authenticated.")
 
         try:
-            #find product by id
+            # find product by id
             product = Product.query.filter_by(id=product_id).first()
 
             if not product:
@@ -352,7 +352,7 @@ class UpdateProductSales(Resource):
 
             data = request.get_json()
 
-            #create Profit row
+            # create Profit row
             new_profit = Profit(
                 profit_amount=Decimal(0),
                 margin=Decimal(0),
@@ -375,7 +375,7 @@ class UpdateProductSales(Resource):
             db.session.add(new_cost)
             db.session.commit()
 
-            #create sale row for the product
+            # create sale row for the product
             new_sale = ProductSale(
                 unit_sale_price=data["unit_sale_price"],
                 quantity_sold=data["quantity"],
@@ -392,13 +392,12 @@ class UpdateProductSales(Resource):
 
             return make_response(response_body, 201)
 
-        #handle errors
+        # handle errors
         except:
             abort(500, f"An error occurred while updating product sales.")
 
 
 api.add_resource(UpdateProductSales, '/product_sales/<int:product_id>')
-
 
 
 # this script runs the app

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { SalesContext } from "../context/SalesContext";
@@ -27,9 +27,6 @@ const ProductForm = ({
   formAction,
 }) => {
   const { addProduct, addProductSale } = useContext(SalesContext);
-
-  console.log(productPageData);
-  console.log(formAction); // add_product or edit_metrics
 
   // if formAction is add_product => show the form w all the fields.(1)
   // if edit_metrics => show the form w product description.
@@ -97,8 +94,8 @@ const ProductForm = ({
         </button>
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           {formAction === "add_product"
-            ? "Add New Product"
-            : `Edit Profit Metrics for Product: ${
+            ? "Add New Profit data"
+            : `Add New Sale Data for Product: ${
                 productData[0]?.description || "Unknown Product"
               }`}
         </h2>

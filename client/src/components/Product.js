@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 function Product({ profit, index, onOptionSelect }) {
-  // manage state in child component for each selection chnge.
+  // manage state in child component for each selection change.
   const [selectedOption, setSelectedOption] = useState("none");
 
   // console.log(profit.profitId, profit.productId)

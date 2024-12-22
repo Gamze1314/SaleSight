@@ -1,15 +1,15 @@
 // import navlink
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { GrAnalytics } from "react-icons/gr";
-import { useContext } from 'react'
+import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 function MainNavBar() {
-    const { logOut } = useContext(AuthContext)
+  const { logOut } = useContext(AuthContext);
 
   const handleLogOut = () => {
-    logOut()
-  }
+    logOut();
+  };
 
   return (
     <div className="fixed top-0 w-full flex justify-between items-center p-4 bg-gray-800 text-white shadow-lg  hover:shadow-red-900">
