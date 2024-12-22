@@ -21,8 +21,9 @@ function AnalyticsPage() {
           </p>
           <p className="text-gray-600 text-center text-xl w-full max-w-4xl mt-6 p-4">
             Your one-stop solution for managing your sales and earnings. Here
-            you can view your total profit, revenue, and total cost statistics.
+            you can view your total profit, revenue, and total cost data analytics.
           </p>
+          <p className="text-gray-600 text-center text-xl w-full max-w-4xl mt-6 p-4">Start managing your store and add your sales to view your profit metrics on this page!</p>
         </div>
       </div>
       <div>

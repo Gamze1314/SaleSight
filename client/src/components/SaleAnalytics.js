@@ -1,37 +1,41 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
 function SaleAnalytics() {
   const { salesData, processedData, error } = useContext(SalesContext);
 
-  if (error) {
-    // Use error.message to display only the message part of the error
-    return <div>{error.message}</div>;
-  }
+  // Add debugging logs
+  useEffect(() => {
+    console.log("salesData:", salesData);
+    console.log("processedData:", processedData);
+  }, [salesData, processedData]);
 
-  if (!salesData || salesData.length === 0) {
-    return <div>No data available.</div>;
-  }
-
+  // if there is no data available(new user signup), then show 0 Values.
   // Sort data by date
-  const sortedData = processedData.sort(
-    (a, b) => new Date(a.date) - new Date(b.date)
-  );
 
-    const totalRevenue = sortedData.reduce(
-      (sum, sale) => sum + sale.revenue,
-      0
+  // Initialize analytics data
+  let totalRevenue = 0;
+  let totalCost = 0;
+  let totalProfit = 0;
+  let totalQuantity = 0;
+
+  // Only calculate totals if there's data
+  if (processedData && processedData.length > 0) {
+    // Sort data by date
+    const sortedData = processedData.sort(
+      (a, b) => new Date(a.date) - new Date(b.date)
     );
-    const totalCost = sortedData.reduce((sum, sale) => sum + sale.cost, 0);
-    const totalProfit = sortedData.reduce((sum, sale) => sum + sale.profit, 0);
-    const totalQuantity = sortedData.reduce(
-      (sum, sale) => sum + sale.quantity,
-      0
-    );
+
+    totalRevenue = sortedData.reduce((sum, sale) => sum + sale.revenue, 0);
+    totalCost = sortedData.reduce((sum, sale) => sum + sale.cost, 0);
+    totalProfit = sortedData.reduce((sum, sale) => sum + sale.profit, 0);
+    totalQuantity = sortedData.reduce((sum, sale) => sum + sale.quantity, 0);
+  }
 
   return (
     <div className="space-y-6 p-4">
+      {error && <div className="text-red-500 mb-4">{error.message}</div>}
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white shadow rounded-lg p-6">
@@ -57,37 +61,6 @@ function SaleAnalytics() {
           <p className="text-2xl font-bold text-purple-600">{totalQuantity}</p>
         </div>
       </div>
-
-      {/* Sales Details Table
-      <div className="bg-white shadow rounded-lg p-6">
-        <h4 className="text-lg font-medium mb-4">Sales Details</h4>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 text-left">Sale ID</th>
-                <th className="p-2 text-left">Date</th>
-                <th className="p-2 text-right">Quantity</th>
-                <th className="p-2 text-right">Revenue</th>
-                <th className="p-2 text-right">Cost</th>
-                <th className="p-2 text-right">Profit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedData.map((sale, index) => (
-                <tr key={sale.id} className="border-b">
-                  <td className="p-2">{index + 1}</td>
-                  <td className="p-2">{sale.date}</td>
-                  <td className="p-2 text-right">{sale.quantity}</td>
-                  <td className="p-2 text-right">{formatCurrency(sale.revenue)}</td>
-                  <td className="p-2 text-right">{formatCurrency(sale.cost)}</td>
-                  <td className="p-2 text-right">{formatCurrency(sale.profit)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div> */}
     </div>
   );
 }

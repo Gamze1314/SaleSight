@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
     checkSession();
   }, []);
 
-  console.log(error)
+
 
   // Function to log in the user
   const login = async (username, password) => {
@@ -67,9 +67,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  console.log(isAuthenticated) // sets true after login.
-  console.log(currentUser)
-
   // /signup 
   const signup = async (username, password, name, email) => {
     try {
@@ -85,7 +82,7 @@ export const AuthProvider = ({ children }) => {
         setCurrentUser(data);
         setIsAuthenticated(true);
         // navigate to products page or another.
-        // navigate("/my_store");
+        navigate("/my_store");
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to sign up");

@@ -6,7 +6,6 @@ from sqlalchemy_serializer import SerializerMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 # import re
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy import select, func
 from decimal import Decimal, InvalidOperation
 import re
 from helpers import total_revenue_for_sale, calculate_sale_profit_amount
@@ -121,7 +120,6 @@ class Product(db.Model, SerializerMixin):
                 'Description should be between 3 and 100 characters long.')
         return value
 
-
     def __repr__(self):
         return f'Product {self.id}, {self.description} {self.purchased_at}, {self.updated_at}'
 
@@ -188,7 +186,8 @@ class Cost(db.Model, SerializerMixin):
 class ProductSale(db.Model, SerializerMixin):
     __tablename__ = 'product_sales'
 
-    serialize_rules = ('-profit.sales','sales_revenue', 'profit_amount', 'profit_margin')
+    serialize_rules = ('-profit.sales', 'sales_revenue',
+                       'profit_amount', 'profit_margin')
 
     id = db.Column(db.Integer, primary_key=True)
     unit_sale_price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -203,7 +202,6 @@ class ProductSale(db.Model, SerializerMixin):
         'profits.id'), nullable=False)
 
     profit = db.relationship('Profit', back_populates='sales')
-
 
     @validates('quantity_sold')
     def validate_quantity_sold(self, key, value):

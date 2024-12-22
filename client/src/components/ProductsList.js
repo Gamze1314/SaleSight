@@ -3,11 +3,7 @@ import Product from "./Product";
 import { SalesContext } from '../context/SalesContext';
 
 
-function ProductsList({
-  setSelectedProductId,
-  setSelectedOption,
-  selectedOption,
-}) {
+function ProductsList({ onOptionSelect }) {
   const { productPageData, loading } = useContext(SalesContext);
 
   if (loading) {
@@ -16,7 +12,10 @@ function ProductsList({
 
   return (
     <>
-      <p>With Select Options, you can edit Profit metrics.</p>
+      {/*  DO NOT DISPLAY P TAG IF NO PRODUCT FOUND */}
+      {productPageData.length > 0 && (
+        <p>With Select Options, you can manage Profit center.</p>
+      )}
       <table className="w-full text-sm border-collapse border border-gray-200">
         {/* Table Header */}
         <thead>
@@ -25,7 +24,7 @@ function ProductsList({
               Product Description
             </th>
             <th className="p-3 text-left border border-gray-200">
-              Sale Revenue
+              Sales Revenue
             </th>
             <th className="p-3 text-left border border-gray-200">
               Total Inventory
@@ -38,16 +37,22 @@ function ProductsList({
         </thead>
         {/* Table Body */}
         <tbody>
-          {productPageData.map((profit, index) => (
-            <Product
-              key={index} // fallback to index
-              profit={profit}
-              index={index}
-              setSelectedProductId={setSelectedProductId}
-              setSelectedOption={setSelectedOption}
-              selectedOption={selectedOption}
-            />
-          ))}
+          {productPageData.length === 0 ? (
+            <tr>
+              <td colSpan="5" className="text-center">
+                No products found.
+              </td>
+            </tr>
+          ) : (
+            productPageData.map((profit, index) => (
+              <Product
+                key={index}
+                profit={profit}
+                index={index}
+                onOptionSelect={onOptionSelect}
+              />
+            ))
+          )}
         </tbody>
       </table>
     </>

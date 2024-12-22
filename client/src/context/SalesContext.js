@@ -9,6 +9,8 @@ export const SalesProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [productPageData, setProductPageData] = useState([]);
 
+  // login API call
+
   // Fetch initial sales data
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -19,11 +21,13 @@ export const SalesProvider = ({ children }) => {
 
       try {
         const res = await fetch("/user_sales");
-        if (res.ok) {
+        if (res.status === 200) {
           const data = await res.json();
           setSalesData(data);
+        } else if (res.status === 404) {
+          setError("No sales data found.");
         } else {
-          throw new Error("Failed to fetch sales data");
+          setError("Failed to fetch sales data.");
         }
       } catch (err) {
         setError(err.message);
@@ -35,6 +39,8 @@ export const SalesProvider = ({ children }) => {
     };
     fetchSalesData();
   }, []);
+
+  console.log(salesData)
 
   // processed for Profit Hub page.
   const { userSales, saleCosts, userData, userProducts, processedData } =
@@ -165,10 +171,10 @@ export const SalesProvider = ({ children }) => {
   // Process the data once and store it , useMemo() for ProductsPage.
   // recalculates, caches previous data when salesData changes.
 
-  const updateProfitMetrics = async (values, profitId) => {
+  const addProductSale = async (values, productId) => {
     try {
-      const response = await fetch(`/user_sales/${profitId}`, {
-        method: "PATCH",
+      const response = await fetch(`/product_sales/${productId}`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -182,10 +188,10 @@ export const SalesProvider = ({ children }) => {
       }
       const data = await response.json();
       console.log("Profit metrics updated successfully:", data);
-      // update state here if needed
       //  update your products list or trigger a refresh
+      console.log(data)
       setSalesData((prevData) =>
-        prevData.map((item) => (item.id === profitId ? data : item))
+        prevData.map((item) => (item.product_id === productId ? data : item))
       );
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
@@ -210,7 +216,7 @@ export const SalesProvider = ({ children }) => {
         error,
         clearError,
         addProduct,
-        updateProfitMetrics,
+        addProductSale
       }}
     >
       {loading ? (

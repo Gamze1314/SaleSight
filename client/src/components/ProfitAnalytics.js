@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { SalesContext } from "../context/SalesContext";
+import { AuthContext } from "../context/AuthContext";
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,26 +15,28 @@ import { formatCurrency, formatProfitMargin, stringFormatter } from "../utils";
 
 function ProfitAnalytics() {
   // userProducts used to displayed all product descriptions on Related Information.
-  const { processedData, userData, userProducts, error } =
+  const { processedData, userProducts } =
     useContext(SalesContext);
-  const [user] = userData;
-  const { username } = user;
+  const { currentUser } = useContext(AuthContext);
+  const { name } = currentUser;
 
   // format username , first letter capitalized, the rest lowercase
-  const formattedUsername = stringFormatter(username);
+  const formattedUsername = stringFormatter(name);
 
   userProducts.forEach((product) => {
     return stringFormatter(product.description);
   });
-
-  if (error) return <ErrorDisplay error={error} />;
 
   const firstRecord = processedData || {};
 
   return (
     <div className="space-y-6 p-4">
       <h2 className="text-2xl font-semibold mb-6">Profit Analytics</h2>
-      <p>Please click on the blue dot to display profit details.</p>
+      {processedData.length === 0 ? (
+        <p>No data available</p>
+      ) : (
+        <p>Please click on the blue dot to display profit details.</p>
+      )}
       <ChartContainer data={processedData} />
       <RelatedInfo
         data={firstRecord}
@@ -43,14 +46,6 @@ function ProfitAnalytics() {
     </div>
   );
 }
-
-const ErrorDisplay = ({ error }) => (
-  <div className="min-h-screen flex justify-center items-center">
-    <div className="bg-red-50 p-4 text-red-800 rounded-lg shadow-sm">
-      <p>{error}</p>
-    </div>
-  </div>
-);
 
 // Function to dynamically format tooltip values
 const formatMargin = (value, name) => {
@@ -120,10 +115,12 @@ const RelatedInfo = ({ data, username, userProducts }) => (
     <h4 className="text-lg font-medium mb-4">Related Information</h4>
     {data ? (
       <div>
-        <p className="font-medium">Sale Assistant: {username}</p>
+        <p className="font-medium">User: {username}</p>
         {/* return all product desc. from userProducts array. */}
         <p className="font-medium">
-          Product Description:{" "}
+          Products:{" "}
+          {/* IF NO PRODUCT FOUND, NO PRODUCTS IN THE INVENTORY */}
+          {userProducts.length === 0? "No products found." : ""}
           {userProducts.map((product) => product.description).join(", ")}
         </p>
       </div>

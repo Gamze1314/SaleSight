@@ -1,16 +1,15 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-// useContext for addProduct
-import { SalesContext } from '../context/SalesContext'
+import { SalesContext } from "../context/SalesContext";
 import { stringFormatter } from "../utils";
-
 
 // Validation Schemas
 const ValidationSchema = Yup.object().shape({
   // format description intial upper rest is lower. stringFormatter
-  description: Yup.string().required("Description is required")
-  .transform((value) => stringFormatter(value)),
+  description: Yup.string()
+    .required("Description is required")
+    .transform((value) => stringFormatter(value)),
   unit_value: Yup.number().required("Unit value is required"),
   quantity: Yup.number().required("Quantity Sold is required").min(1),
   marketing_cost: Yup.number().required("Marketing cost is required"),
@@ -20,25 +19,47 @@ const ValidationSchema = Yup.object().shape({
   quantity_purchased: Yup.number().required("Quantity Purchased is required"),
 });
 
-const ProductForm = ({ onClose, isChecked, productPageData }) => {
-  const { addProduct, updateProfitMetrics, salesData } =
-    useContext(SalesContext);
+const ProductForm = ({
+  onClose,
+  productPageData,
+  selectedOption,
+  selectedProductId,
+  formAction,
+}) => {
+  const { addProduct, addProductSale } = useContext(SalesContext);
 
-  const relevantData =
-    isChecked && productPageData.length > 0 ? productPageData : null;
+  console.log(productPageData);
+  console.log(formAction); // add_product or edit_metrics
+
+  // if formAction is add_product => show the form w all the fields.(1)
+  // if edit_metrics => show the form w product description.
+
+  const relevantData = productPageData.length > 0 ? productPageData : null;
+
+  // Fetch or handle data for the selected product, by productId.
+  const productData = selectedProductId
+    ? relevantData.filter((product) => product.productId === selectedProductId)
+    : null;
+
+
+  //if selectedOption is "edit_metrics" => user will be able to see product form w product description initialized in the field.
+  //then sends POST request to /user_sales/product_id => updateProfitMetrics w product_id.(new sale addition)
 
   const formik = useFormik({
     initialValues:
-      isChecked && relevantData
+      selectedOption === "edit_metrics"
         ? {
-            description: relevantData.description || "",
-            unit_value: relevantData.unit_value || "",
-            quantity: relevantData.quantity || "",
-            marketing_cost: relevantData.marketing_cost || "",
-            shipping_cost: relevantData.shipping_cost || "",
-            packaging_cost: relevantData.packaging_cost || "",
-            unit_sale_price: relevantData.unit_sale_price || "",
-            quantity_purchased: relevantData.quantity_purchased || "",
+            description:
+              selectedOption === "edit_metrics" && productData
+                ? productData[0]["description"]
+                : "", // Initialize with product description if available
+            unit_value: "",
+            quantity: "",
+            marketing_cost: "",
+            shipping_cost: "",
+            packaging_cost: "",
+            unit_sale_price: "",
+            quantity_purchased: "",
           }
         : {
             description: "",
@@ -50,20 +71,17 @@ const ProductForm = ({ onClose, isChecked, productPageData }) => {
             unit_sale_price: "",
             quantity_purchased: "",
           },
-    enableReinitialize: true,
+    enableReinitialize: true, // Allow form to reinitialize when `initialValues` change
     validationSchema: ValidationSchema,
-    enableReinitialize: true, // Ensures the form gets reset when product data changes.
     onSubmit: (values) => {
-      if (relevantData) {
-        // if isChecked true, the user updates the profit metrics.(product selected)
-        // add profit id to edit.
-        values.profit_id = relevantData.profitId;
-        // update the product metrics
-        updateProfitMetrics(values, values.profit_id);
+      if (selectedOption === "edit_metrics" && productData) {
+        console.log(values, selectedProductId)
+        addProductSale(values, selectedProductId);
       } else {
+        // Add a new product
         addProduct(values);
       }
-      onClose();
+      onClose(); // Close the form after submission
     },
   });
 
@@ -78,34 +96,34 @@ const ProductForm = ({ onClose, isChecked, productPageData }) => {
           ✕
         </button>
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-          {isChecked
-            ? "Edit Profit Metrics"
-            : "Add Sale and Product Information"}
+          {formAction === "add_product"
+            ? "Add New Product"
+            : `Edit Profit Metrics for Product: ${
+                productData[0]?.description || "Unknown Product"
+              }`}
         </h2>
         <form onSubmit={formik.handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {!isChecked ? (
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Product Description
-                </label>
-                <input
-                  id="description"
-                  name="description"
-                  className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-                  onChange={formik.handleChange}
-                  value={formik.values.description}
-                />
-                {formik.errors.description && (
-                  <p className="text-sm text-red-600">
-                    {formik.errors.description}
-                  </p>
-                )}
-              </div>
-            ) : null}
+            <div>
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Product Description
+              </label>
+              <input
+                id="description"
+                name="description"
+                className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+                onChange={formik.handleChange}
+                value={formik.values.description}
+              />
+              {formik.errors.description && (
+                <p className="text-sm text-red-600">
+                  {formik.errors.description}
+                </p>
+              )}
+            </div>
             <div>
               <label
                 htmlFor="unit_value"
@@ -252,7 +270,6 @@ const ProductForm = ({ onClose, isChecked, productPageData }) => {
               )}
             </div>
           </div>
-          {/* TOGGLE BUTTON */}
           <div className="flex justify-between mt-8">
             <button
               type="submit"
@@ -260,13 +277,6 @@ const ProductForm = ({ onClose, isChecked, productPageData }) => {
             >
               Submit
             </button>
-            {/* <button
-              type="button"
-              className="px-6 py-2 text-gray-800 bg-gray-300 rounded-lg hover:bg-gray-400"
-              onClick={() => setIsUpdating((prev) => !prev)}
-            >
-              {isUpdating ? "Switch to Add Mode" : "Switch to Update Mode"}
-            </button> */}
           </div>
         </form>
       </div>
@@ -275,5 +285,3 @@ const ProductForm = ({ onClose, isChecked, productPageData }) => {
 };
 
 export default ProductForm;
-
-// conditionlly render fields depending on the type of action (add or edit.)

@@ -23,7 +23,7 @@ class CheckSession(Resource):
             else:
                 session['user_id'] = None
                 session.clear()  # Clears all session data
-        return abort(401, 'User not found')
+        return abort(401, 'User is not authenticated.')
 
 
 api.add_resource(CheckSession, '/check_session')
@@ -82,8 +82,8 @@ class Login(Resource):
     def post(self):
         try:
             data = request.get_json()
-            username = data.get('username')
-            password = data.get('password')
+            username = data['username']
+            password = data['password']
 
             # Check for missing data
             if not username or not password:
@@ -331,6 +331,74 @@ class UserSales(Resource):
 # Add the resource to the API
 api.add_resource(UserSales, '/user_sales',
                  '/user_sales/<int:profit_id>')
+
+
+
+# Update profit metrics and profit_amount by productId (add new sale functionality)
+class UpdateProductSales(Resource):
+    def post(self, product_id):
+        # Get user_id from the session
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+
+        try:
+            #find product by id
+            product = Product.query.filter_by(id=product_id).first()
+
+            if not product:
+                abort(404, "Product not found")
+
+            data = request.get_json()
+
+            #create Profit row
+            new_profit = Profit(
+                profit_amount=Decimal(0),
+                margin=Decimal(0),
+                product_id=product_id,
+                user_id=user_id,
+            )
+
+            db.session.add(new_profit)
+            db.session.commit()
+
+            new_cost = Cost(
+                quantity_purchased=data["quantity_purchased"],
+                unit_value=data["unit_value"],
+                marketing_cost=data["marketing_cost"],
+                shipping_cost=data["shipping_cost"],
+                packaging_cost=data["packaging_cost"],
+                profit_id=new_profit.id
+            )
+
+            db.session.add(new_cost)
+            db.session.commit()
+
+            #create sale row for the product
+            new_sale = ProductSale(
+                unit_sale_price=data["unit_sale_price"],
+                quantity_sold=data["quantity"],
+                profit_id=new_profit.id
+            )
+
+            db.session.add(new_sale)
+            db.session.commit()
+
+            # update profit metrics
+            update_profit_metrics(new_profit)
+
+            response_body = [new_profit.to_dict()]
+
+            return make_response(response_body, 201)
+
+        #handle errors
+        except:
+            abort(500, f"An error occurred while updating product sales.")
+
+
+api.add_resource(UpdateProductSales, '/product_sales/<int:product_id>')
+
 
 
 # this script runs the app
