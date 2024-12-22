@@ -68,6 +68,16 @@ User Sale and Profit Data Management:
 '/user_sales/<int:profit_id>' : handles PATCH HTTP requests.
 '/product_sales/<int:product_id>' : handles POST, DELETE requests.
 
+### Frontend Technologies Used
+
+React
+react-router-dom
+react-icons/gr
+Recharts
+Formik
+Yup
+Tailwind CSS
+
 
 Contributions are welcome! To contribute:
 Fork the repository.
