@@ -13,21 +13,6 @@ function ProductToolBar({ handleAddProfit }) {
       >
         Add New Profit
       </button>
-      {/* Filter Options */}
-      {/* <div className="flex items-center space-x-4">
-        <label className="text-sm font-medium text-gray-700" htmlFor="category">
-          Filter by Category:
-        </label>
-        <select
-          id="category"
-          className="block w-48 px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">All Categories</option>
-          <option value="electronics">Electronics</option>
-          <option value="clothing">Clothing</option>
-          <option value="accessories">Accessories</option>
-        </select>
-      </div> */}
     </div>
   );
 }

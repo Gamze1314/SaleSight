@@ -15,8 +15,7 @@ import { formatCurrency, formatProfitMargin, stringFormatter } from "../utils";
 
 function ProfitAnalytics() {
   // userProducts used to displayed all product descriptions on Related Information.
-  const { processedData, userProducts } =
-    useContext(SalesContext);
+  const { processedData, userProducts } = useContext(SalesContext);
   const { currentUser } = useContext(AuthContext);
   const { name } = currentUser;
 
@@ -118,9 +117,8 @@ const RelatedInfo = ({ data, username, userProducts }) => (
         <p className="font-medium">User: {username}</p>
         {/* return all product desc. from userProducts array. */}
         <p className="font-medium">
-          Products:{" "}
-          {/* IF NO PRODUCT FOUND, NO PRODUCTS IN THE INVENTORY */}
-          {userProducts.length === 0? "No products found." : ""}
+          Products: {/* IF NO PRODUCT FOUND, NO PRODUCTS IN THE INVENTORY */}
+          {userProducts.length === 0 ? "No products found." : ""}
           {userProducts.map((product) => product.description).join(", ")}
         </p>
       </div>

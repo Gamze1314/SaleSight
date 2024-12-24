@@ -31,8 +31,8 @@ function Product({ profit, index, onOptionSelect }) {
         {profit.description}
       </td>
       <td className="p-3 text-left">${profit.total_sales_revenue}</td>
-      <td className="p-3 text-left">{profit.quantity_purchased}</td>
-      <td className="p-3 text-left">{profit.quantitySold}</td>
+      <td className="p-3 text-left">{profit.total_quantity_purchased}</td>
+      <td className="p-3 text-left">{profit.total_quantity_sold}</td>
       <td>
         <select
           className="h-10 w-full rounded border border-solid border-neutral-300 px-4 text-sm"
@@ -40,8 +40,10 @@ function Product({ profit, index, onOptionSelect }) {
           value={selectedOption} // Controlled component per row
         >
           <option value="none">Select</option>
-          <option value="view_sales">View Sales</option>
-          <option value="edit_metrics">Add New Sale</option>
+          <option value="view_sales">View Profit Table</option>
+          <option value="edit_metrics">Add New Profit Metrics</option>
+          {/* option to delete existing profit data for selected product */}
+          <option value="delete_metric">Delete Existing Profit</option>
         </select>
       </td>
     </tr>

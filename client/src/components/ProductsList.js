@@ -1,19 +1,21 @@
-import React, { useContext } from 'react';
+import React, { useContext } from "react";
 import Product from "./Product";
-import { SalesContext } from '../context/SalesContext';
+import { SalesContext } from "../context/SalesContext";
 
-
-function ProductsList({ onOptionSelect }) {
-  const { productPageData, loading } = useContext(SalesContext);
+function ProductsList({ onOptionSelect, consolidatedProductData }) {
+  const { loading } = useContext(SalesContext);
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
+  // Log consolidated data
+  console.log(consolidatedProductData);
+
   return (
     <>
       {/*  DO NOT DISPLAY P TAG IF NO PRODUCT FOUND */}
-      {productPageData.length > 0 && (
+      {consolidatedProductData.length > 0 && (
         <p>With Select Options, you can manage Profit center.</p>
       )}
       <table className="w-full text-sm border-collapse border border-gray-200">
@@ -37,14 +39,14 @@ function ProductsList({ onOptionSelect }) {
         </thead>
         {/* Table Body */}
         <tbody>
-          {productPageData.length === 0 ? (
+          {consolidatedProductData.length === 0 ? (
             <tr>
               <td colSpan="5" className="text-center">
                 No products and sales data found.
               </td>
             </tr>
           ) : (
-            productPageData.map((profit, index) => (
+            consolidatedProductData.map((profit, index) => (
               <Product
                 key={index}
                 profit={profit}

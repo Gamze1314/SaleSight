@@ -10,9 +10,10 @@ SaleSight is a full-stack web application designed to empower businesses by stre
 
 * Data Insights: Access metrics like Total Cost, Total Revenue, Total Items Sold, and Total Profit in a consolidated view.
 
-* Detailed Reports: Dive deeper into product-specific sales and profit information.
+* Detailed Analytics: Dive deeper into product-specific sales and profit information.
 
 * Dynamic Interaction: Add new profit data and monitor updates in real-time.
+
 
 ### Backend Installations
 

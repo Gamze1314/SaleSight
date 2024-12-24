@@ -21,23 +21,26 @@ const ValidationSchema = Yup.object().shape({
 
 const ProductForm = ({
   onClose,
-  productPageData,
+  consolidatedProductData,
   selectedOption,
   selectedProductId,
   formAction,
+  onOperationComplete,
 }) => {
   const { addProduct, addProductSale } = useContext(SalesContext);
 
   // if formAction is add_product => show the form w all the fields.(1)
   // if edit_metrics => show the form w product description.
 
-  const relevantData = productPageData.length > 0 ? productPageData : null;
+  const relevantData =
+    consolidatedProductData.length > 0 ? consolidatedProductData : null;
+
+  console.log(relevantData)
 
   // Fetch or handle data for the selected product, by productId.
   const productData = selectedProductId
     ? relevantData.filter((product) => product.productId === selectedProductId)
     : null;
-
 
   //if selectedOption is "edit_metrics" => user will be able to see product form w product description initialized in the field.
   //then sends POST request to /user_sales/product_id => updateProfitMetrics w product_id.(new sale addition)
@@ -70,15 +73,19 @@ const ProductForm = ({
           },
     enableReinitialize: true, // Allow form to reinitialize when `initialValues` change
     validationSchema: ValidationSchema,
-    onSubmit: (values) => {
-      if (selectedOption === "edit_metrics" && productData) {
-        console.log(values, selectedProductId)
-        addProductSale(values, selectedProductId);
-      } else {
-        // Add a new product
-        addProduct(values);
+    onSubmit: async (values) => {
+      //async API call
+      try {
+        if (selectedOption === "edit_metrics" && productData) {
+          await addProductSale(values, selectedProductId);
+        } else {
+          await addProduct(values);
+        }
+        onClose(); // Close the form
+        onOperationComplete(); // Reset parent component state
+      } catch (error) {
+        console.error("Error submitting form:", error);
       }
-      onClose(); // Close the form after submission
     },
   });
 

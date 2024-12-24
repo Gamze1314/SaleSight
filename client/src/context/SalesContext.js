@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useMemo } from "react";
-import { stringFormatter } from "../utils";
 
 export const SalesContext = createContext();
 
@@ -7,9 +6,6 @@ export const SalesProvider = ({ children }) => {
   const [salesData, setSalesData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [productPageData, setProductPageData] = useState([]);
-
-  // login API call
 
   // Fetch initial sales data
   useEffect(() => {
@@ -40,7 +36,9 @@ export const SalesProvider = ({ children }) => {
     fetchSalesData();
   }, []);
 
-  console.log(salesData)
+  console.log(salesData);
+
+  // API Call -> salesData update -> memoizedProductPageData recalculation -> productPageData update
 
   // processed for Profit Hub page.
   const { userSales, saleCosts, userData, userProducts, processedData } =
@@ -106,10 +104,7 @@ export const SalesProvider = ({ children }) => {
       console.log(data);
       console.log("Product and profit data added successfully:", data);
       // Update salesData
-      setSalesData((prevData) => {
-        const updatedData = [...prevData, data];
-        return updatedData;
-      });
+      setSalesData((prevData) => [...prevData, data]);
     } catch (error) {
       console.error("Error adding product:", error);
       setError(error.message);
@@ -117,59 +112,6 @@ export const SalesProvider = ({ children }) => {
   };
 
   console.log(salesData);
-
-  // PRODUCTPAGE DATA PROCESSING HERE.
-  // salesData fetching is asynchronous, and not available during the first render. it casuses productPage data to be populated with empty or incorrect values. Product component shows "Unknown product", 0, 0 values when new product/sale information is added.
-  // if (salesData.length === 0) return; // Prevents processing if data is empty
-
-  // useMemo caches (memoizes) the computed result until salesData changes =>This prevents unnecessary recalculations during re-renders
-  const memoizedProductPageData = useMemo(() => {
-    if (!salesData.length) return [];
-
-    return salesData
-      .map((profitData) => {
-        const relevantCost = profitData.costs?.[0];
-        const product = profitData.product?.[0];
-
-        if (!product) return null;
-
-        const productName = product.description
-          ? stringFormatter(product.description)
-          : "Unknown Product";
-
-        const sales = Array.isArray(profitData.sales) ? profitData.sales : [];
-
-        const totalSalesRevenue = sales.reduce(
-          (acc, sale) => acc + (parseFloat(sale.sales_revenue) || 0),
-          0
-        );
-
-        const totalQuantitySold = sales.reduce(
-          (acc, sale) => acc + (parseInt(sale.quantity_sold) || 0),
-          0
-        );
-
-        return {
-          profitId: profitData.id,
-          productId: product.id,
-          description: productName,
-          quantitySold: totalQuantitySold,
-          total_sales_revenue: totalSalesRevenue,
-          quantity_purchased: relevantCost?.quantity_purchased || 0,
-
-        };
-      })
-      .filter(Boolean); // Remove null entries
-  }, [salesData]);
-
-  // Update productPageData whenever memoized data changes
-  //child components re-render w new data here.
-  useEffect(() => {
-    setProductPageData(memoizedProductPageData);
-  }, [memoizedProductPageData]);
-
-  // Process the data once and store it , useMemo() for ProductsPage.
-  // recalculates, caches previous data when salesData changes.
 
   const addProductSale = async (values, productId) => {
     try {
@@ -189,7 +131,7 @@ export const SalesProvider = ({ children }) => {
       const data = await response.json();
       console.log("Profit metrics updated successfully:", data);
       //  update your products list or trigger a refresh
-      console.log(data)
+      console.log(data);
       setSalesData((prevData) =>
         prevData.map((item) => (item.product_id === productId ? data : item))
       );
@@ -201,14 +143,13 @@ export const SalesProvider = ({ children }) => {
   const clearError = () => setError(null);
 
   // API DELETE request for product deletion
-  console.log(salesData)
+  console.log(salesData);
 
   return (
     <SalesContext.Provider
       value={{
         salesData,
         processedData,
-        productPageData: memoizedProductPageData, // Use memoized data directly
         userData,
         userProducts,
         userSales,
@@ -216,7 +157,7 @@ export const SalesProvider = ({ children }) => {
         error,
         clearError,
         addProduct,
-        addProductSale
+        addProductSale,
       }}
     >
       {loading ? (
