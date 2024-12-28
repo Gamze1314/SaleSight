@@ -10,24 +10,54 @@ from decimal import Decimal, InvalidOperation
 import re
 from helpers import total_revenue_for_sale, calculate_sale_profit_amount
 
-# User has many products through Profit(Many-to-Many)
-# Product has many users through Profit(multiple users can own or access to products.)
-# User has many profits
-# Profit belongs to User
-# Profit belongs to a product.(one-to-many)
+# User has many products through UserProductAssociation
+# Product has many users through UserProductAssociation
 
-# Profit has many costs
-# Cost  belongs to a profit.
-# Profit has many sales
-# Sale belongs to a profit.
+# User has many sales
+# A Sale belongs to a user.
 
-# if you delete a profit, deletes associated cost and sale records.
+# Product has many sales.
+# A Sale belongs to a product.
+
+# A Sale has one cost
+# a Sale has one profit.
+
+# Profit belongs to a sale.
+# Cost belongs to a sale.
+
+# NOTES
+# User profits User => Sale => Profit
+# ProductCosts => Product => Sale => Cost
+
+# New update: userProducts table to keep track of product inventory.
+
+
+class User_Product_Association(db.Model, SerializerMixin):
+    __tablename__ = 'user_products'
+
+    serialize_only = ('product_id', 'user_id')
+
+    user_id = db.Column(db.Integer, db.ForeignKey(
+        'users.id'), primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey(
+        'products.id'), primary_key=True)
+    created_at = db.Column(db.DateTime, nullable=False,
+                           server_default=db.func.now())
+    updated_at = db.Column(db.DateTime, nullable=False,
+                           server_default=db.func.now(), onupdate=db.func.now())
+    
+    # user / product relationship
+    user = db.relationship('User', back_populates='_product_associations')
+    product = db.relationship('Product', back_populates='_user_associations')
 
 
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules = ('-profits.user', '-password_hash')
+    serialize_rules = (
+        '-password_hash', '-_product_associations', '-sales.user')
+    
+    serialize_only = ('id', 'name', 'username', 'email')
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
@@ -43,13 +73,14 @@ class User(db.Model, SerializerMixin):
         db.CheckConstraint('name != username', name='check_name_not_username'),
     )
 
-    # User has many profits
-    profits = db.relationship(
-        'Profit', back_populates='user', cascade='all, delete-orphan')
+    sales = db.relationship('ProductSale', back_populates='user')
 
-    # User has many Products through Profit.
+    # Relationship to association table
+    _product_associations = db.relationship(
+        'User_Product_Association', back_populates='user')
+
     products = association_proxy(
-        'profits', 'product', creator=lambda p: Profit(product=p))
+        '_product_associations', 'product', creator=lambda p: Product(product=p))
 
     @validates('name')
     def validate_name(self, key, value):
@@ -95,7 +126,7 @@ class User(db.Model, SerializerMixin):
 class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
-    serialize_rules = ('-profits.product',)
+    serialize_rules = ('-sales.product', '-_user_associations')
 
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), nullable=False)
@@ -104,15 +135,21 @@ class Product(db.Model, SerializerMixin):
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
-    # Product has many profits
-    profits = db.relationship('Profit', back_populates='product')
+    # product has many sales
+    sales = db.relationship('ProductSale', back_populates='product')
 
-    # Product has many users through Profit.
+    # Relationship to association table
+    _user_associations = db.relationship(
+        'User_Product_Association', back_populates='product')
+
+    # product has many users.(association_proxy thru association table)
     users = association_proxy(
-        'profits', 'user', creator=lambda p: Profit(product=p))
+        '_user_associations',
+        'user',
+        creator=lambda u: User_Product_Association(user=u)
+    )
 
     # validate description
-
     @validates('description')
     def validate_description(self, key, value):
         if len(value) < 3 or len(value) > 100:
@@ -124,70 +161,15 @@ class Product(db.Model, SerializerMixin):
         return f'Product {self.id}, {self.description} {self.purchased_at}, {self.updated_at}'
 
 
-class Cost(db.Model, SerializerMixin):
-    __tablename__ = 'costs'
-
-    serialize_rules = ('-profit.costs', 'total_cost')
-
-    id = db.Column(db.Integer, primary_key=True)
-    quantity_purchased = db.Column(db.Integer, nullable=False)
-    unit_value = db.Column(db.Numeric(10, 2), nullable=False)
-    marketing_cost = db.Column(db.Numeric(10, 2), nullable=False)
-    shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
-    packaging_cost = db.Column(db.Numeric(10, 2), nullable=False)
-
-    # Cost belongs to a profit.
-    profit_id = db.Column(db.Integer, db.ForeignKey(
-        'profits.id'), nullable=False)
-
-    profit = db.relationship('Profit', back_populates='costs')
-
-    # validate costs
-    @validates('marketing_cost', 'shipping_cost', 'packaging_cost', 'unit_value')
-    def validate_costs(self, key, value):
-        if value >= 0:  # Allow 0 and positive values
-            try:
-                # Ensure value is a Decimal
-                decimal_value = Decimal(value)
-                return decimal_value
-            except InvalidOperation:
-                raise ValueError(
-                    f"{key} must be a valid number.")
-        else:
-            raise ValueError(
-                f"{key} must not be less than 0.")
-
-    @hybrid_property
-    def total_cost(self):
-        """
-        Calculate the total cost including the Product unit value.
-        """
-        # unit_value * purchased
-        try:
-            # Calculate total cost for the product_id linked to this Cost instance
-            total_cost = Decimal(
-                self.marketing_cost) + Decimal(self.shipping_cost) + Decimal(self.packaging_cost)
-
-            # Add the Product unit value
-            total_cost += Decimal(self.unit_value) * \
-                Decimal(self.quantity_purchased)
-
-            return total_cost.quantize(Decimal('0.01'))
-
-        except (InvalidOperation, AttributeError) as e:
-            raise ValueError(
-                "Calculation error: ensure values are numeric and product exists.")
-
-    def __repr__(self):
-        return f'Cost {self.id}, {self.marketing_cost}, {self.shipping_cost}, {self.packaging_cost}, {self.total_cost}'
-
 
 # PEP 8 Naming Convention
 class ProductSale(db.Model, SerializerMixin):
     __tablename__ = 'product_sales'
 
-    serialize_rules = ('-profit.sales', 'sales_revenue',
-                       'profit_amount', 'profit_margin')
+    # serialize_rules = ('-product.sales', '-user.sales', '-costs.sale', '-profits.sale', 'sales_revenue',
+    #                    'profit_amount', 'profit_margin')
+    serialize_only = ('unit_sale_price', 'quantity_sold', 'sale_date', 'sales_revenue',
+                      'profit_amount', 'profit_margin')
 
     id = db.Column(db.Integer, primary_key=True)
     unit_sale_price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -197,11 +179,22 @@ class ProductSale(db.Model, SerializerMixin):
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
-    # sale belongs to a profit.
-    profit_id = db.Column(db.Integer, db.ForeignKey(
-        'profits.id'), nullable=False)
+    # sale belongs to a product
+    product_id = db.Column(db.Integer, db.ForeignKey(
+        'products.id'), nullable=False)
 
-    profit = db.relationship('Profit', back_populates='sales')
+    # sale belongs to an user.
+    user_id = db.Column(db.Integer, db.ForeignKey(
+        'users.id'), nullable=False)
+
+    product = db.relationship('Product', back_populates='sales')
+    user = db.relationship('User', back_populates='sales')
+    # sale has one cost
+    cost = db.relationship('Cost', back_populates='sale',
+                        uselist=False, cascade="all, delete-orphan")
+    # a sale has one profit
+    profit = db.relationship('Profit', back_populates='sale',
+                          uselist=False, cascade="all, delete-orphan")
 
     @validates('quantity_sold')
     def validate_quantity_sold(self, key, value):
@@ -210,15 +203,7 @@ class ProductSale(db.Model, SerializerMixin):
             raise TypeError('Quantity sold must be an integer.')
         if value < 1:
             raise ValueError('Quantity sold should be greater than 0.')
-        # check quantity sold does not exceed quantity purchased
-        if self.profit and self.profit.costs:
-            total_purchased = sum(
-                cost.quantity_purchased for cost in self.profit.costs)
-            total_sold = sum(sale.quantity_sold for sale in self.profit.sales)
-            # Check if adding this sale would exceed total purchased quantity
-            if total_sold + value >= total_purchased:
-                raise ValueError(
-                    'Quantity sold cannot exceed total quantity purchased.')
+
         return value
 
     # sales price needs to be validated after the product is loaded.
@@ -269,13 +254,94 @@ class ProductSale(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f'ProductSales {self.id}, {self.unit_sale_price}, {self.quantity_sold},{self.profit_amount}, {self.profit_margin} {self.sale_date}, {self.updated_at}'
+    
+class Cost(db.Model, SerializerMixin):
+    __tablename__ = 'costs'
+
+    serialize_rules = ('-sale.costs', 'total_cost')
+
+    id = db.Column(db.Integer, primary_key=True)
+    quantity_purchased = db.Column(db.Integer, nullable=False)
+    unit_value = db.Column(db.Numeric(10, 2), nullable=False)
+    marketing_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    shipping_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    packaging_cost = db.Column(db.Numeric(10, 2), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False,
+                           server_default=db.func.now())
+    updated_at = db.Column(
+        db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+
+    sale_id = db.Column(db.Integer, db.ForeignKey(
+        'product_sales.id'), nullable=False)
+
+    # Cost belongs to a sale
+    sale = db.relationship(
+        'ProductSale', back_populates='cost', uselist=False)
+
+    # validate costs
+    @validates('marketing_cost', 'shipping_cost', 'packaging_cost', 'unit_value')
+    def validate_costs(self, key, value):
+        if value >= 0:  # Allow 0 and positive values
+            try:
+                # Ensure value is a Decimal
+                decimal_value = Decimal(value)
+                return decimal_value
+            except InvalidOperation:
+                raise ValueError(
+                    f"{key} must be a valid number.")
+        else:
+            raise ValueError(
+                f"{key} must not be less than 0.")
+        
+    #validate quantity_purchased
+    @validates('quantity_purchased')
+    def validate_quantity_purchased(self, key, value):
+        # Check if the value is non-negative
+        if value >= 0:  # Allow 0 and positive values
+            try:
+                # Ensure value is an integer
+                value = int(value)
+            except ValueError:
+                raise ValueError(f"{key} must be a valid integer.")
+        else:
+            raise ValueError(f"{key} must not be less than 0.")
+
+        # Check if quantity_purchased is greater than or equal to quantity_sold
+        if self.sale and self.sale.quantity_sold > value:
+            raise ValueError(f"{key} must not be less than quantity sold.")
+
+        return value
+
+
+    @hybrid_property
+    def total_cost(self):
+        """
+        Calculate the total cost including the Product unit value.
+        """
+        # unit_value * purchased
+        try:
+            # Calculate total cost for the product_id linked to this Cost instance
+            total_cost = Decimal(
+                self.marketing_cost) + Decimal(self.shipping_cost) + Decimal(self.packaging_cost)
+
+            # Add the Product unit value
+            total_cost += Decimal(self.unit_value) * \
+                Decimal(self.quantity_purchased)
+
+            return total_cost.quantize(Decimal('0.01'))
+
+        except (InvalidOperation, AttributeError) as e:
+            raise ValueError(
+                "Calculation error: ensure values are numeric and product exists.")
+
+    def __repr__(self):
+        return f'Cost {self.id}, {self.marketing_cost}, {self.shipping_cost}, {self.packaging_cost}, {self.total_cost}'
 
 
 class Profit(db.Model, SerializerMixin):
     __tablename__ = 'profits'
 
-    serialize_rules = ('-user.profits', '-product.profits',
-                       '-costs.profit', '-sales.profit')
+    serialize_rules = ('-sale.profits',)
 
     id = db.Column(db.Integer, primary_key=True)
     profit_amount = db.Column(db.Numeric(
@@ -287,24 +353,11 @@ class Profit(db.Model, SerializerMixin):
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
-    # foreign keys to connect product, user.
-    product_id = db.Column(db.Integer, db.ForeignKey(
-        'products.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    sale_id = db.Column(db.Integer, db.ForeignKey(
+        'product_sales.id'), nullable=False)
 
-    # Profit belongs to a user
-    user = db.relationship('User', back_populates='profits')
-
-    # Profit belongs to a product
-    product = db.relationship('Product', back_populates='profits')
-
-    # profit has many costs
-    costs = db.relationship(
-        'Cost', back_populates='profit', cascade='all, delete-orphan')
-
-    # profit has many sales.
-    sales = db.relationship(
-        'ProductSale', back_populates='profit', cascade='all, delete-orphan')
+    sale = db.relationship(
+        'ProductSale', back_populates='profit', uselist=False)
 
     # validate profit amount
     @validates('profit_amount')

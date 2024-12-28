@@ -1,8 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import React, { useEffect } from "react";
+import React, { useEffect, useContext } from "react";
+import { SalesContext } from "../context/SalesContext";
 
 
 function ErrorPage() {
+  // const { error } = useContext(SalesContext);
+
+  // console.log(error)
 
   // Redirect to login page when user tries to access an unauthorized route
   // This is a workaround to avoid navigation errors when trying to access unauthorized routes

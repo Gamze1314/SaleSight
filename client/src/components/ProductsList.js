@@ -2,22 +2,15 @@ import React, { useContext } from "react";
 import Product from "./Product";
 import { SalesContext } from "../context/SalesContext";
 
-function ProductsList({ onOptionSelect, consolidatedProductData }) {
-  const { loading } = useContext(SalesContext);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+function ProductsList({ onOptionSelect }) {
+  const { loading, salesData } = useContext(SalesContext);
 
-  // Log consolidated data
-  console.log(consolidatedProductData);
+  // Loading state handling
+  if (loading) return <p>Loading...</p>;
 
   return (
     <>
-      {/*  DO NOT DISPLAY P TAG IF NO PRODUCT FOUND */}
-      {consolidatedProductData.length > 0 && (
-        <p>With Select Options, you can manage Profit center.</p>
-      )}
       <table className="w-full text-sm border-collapse border border-gray-200">
         {/* Table Header */}
         <thead>
@@ -29,7 +22,7 @@ function ProductsList({ onOptionSelect, consolidatedProductData }) {
               Sales Revenue
             </th>
             <th className="p-3 text-left border border-gray-200">
-              Total Inventory
+              Quantity Purchased
             </th>
             <th className="p-3 text-left border border-gray-200">
               Quantity Sold
@@ -39,21 +32,20 @@ function ProductsList({ onOptionSelect, consolidatedProductData }) {
         </thead>
         {/* Table Body */}
         <tbody>
-          {consolidatedProductData.length === 0 ? (
+          {salesData.sales?.length === 0 ? (
             <tr>
               <td colSpan="5" className="text-center">
-                No products and sales data found.
+                No sales data found.
               </td>
-            </tr>
-          ) : (
-            consolidatedProductData.map((profit, index) => (
-              <Product
-                key={index}
-                profit={profit}
-                index={index}
-                onOptionSelect={onOptionSelect}
-              />
-            ))
+            </tr> ) : (
+                salesData.map((productSale, index) => (
+                  <Product
+                    key={productSale.id}
+                    product={productSale}
+                    index={index}
+                    onOptionSelect={onOptionSelect}
+                  />
+                ))
           )}
         </tbody>
       </table>

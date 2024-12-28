@@ -43,8 +43,7 @@ def calculate_sale_profit_amount(sale):
     total_revenue = sale.sales_revenue
 
     # Calculate total cost for this sale instance
-    # Sum the total costs from all associated costs for the profit
-    total_cost = sum(cost.total_cost for cost in sale.profit.costs)
+    total_cost = sale.cost.total_cost
 
     # Net profit: Revenue - Total Costs
     net_profit = total_revenue - total_cost
@@ -53,28 +52,94 @@ def calculate_sale_profit_amount(sale):
     return net_profit.quantize(Decimal('0.01'))
 
 
-# update profit amount after each sale
+# update profit amount after each sale, this is private function to update profit table after each sale.
 def update_profit_metrics(profit):
-    #if sale instance is created => updates profit amount and margin.
-    if profit.sales:
-        total_revenue = sum(sale.sales_revenue for sale in profit.sales)
+    # Check if the profit object is associated with a ProductSale
+    if profit.sale:
+        # Access the related ProductSale instance
+        sale = profit.sale
 
-        # Calculate total profit amount using the profit_amount hybrid property
-        total_profit_amount = sum(sale.profit_amount for sale in profit.sales)
+        # Calculate total revenue from the sale
+        total_revenue = sale.sales_revenue
 
-        # Calculate profit margin
-        # Avoid division by zero( if there is no sale.)
+        # Calculate total profit amount from the sale
+        total_profit_amount = sale.profit_amount
+
+        # Calculate profit margin (avoid division by zero)
         margin = (total_profit_amount / total_revenue *
-                100) if total_revenue > 0 else Decimal('0.00')
+                  100) if total_revenue > 0 else Decimal('0.00')
 
-        # Update the Profit amount and margin.
+        # Update the Profit amount and margin
         profit.profit_amount = total_profit_amount.quantize(Decimal('0.01'))
         profit.margin = margin.quantize(Decimal('0.01'))
 
     else:
+        # If no associated sale, set profit amount and margin to 0
         profit.profit_amount = Decimal('0.00')
         profit.margin = Decimal('0.00')
 
+    # Commit the changes to the database
     db.session.commit()
+
+
+def calculate_sales_analytics(products):
+    # Initialize totals for sales analytics
+    total_sales_revenue = 0
+    total_profit_amount = 0
+    total_quantity_sold = 0
+    total_cost = 0
+
+    for product in products:
+        # Fetch sales related to the product
+        product_sales = product.sales
+
+        # Process sales for the product
+        for sale in product_sales:
+            # Include profit if it exists
+            profit = sale.profit
+            if profit:
+                total_profit_amount += float(profit.profit_amount)
+
+            # Include cost if it exists
+            cost = sale.cost
+            if cost:
+                total_cost += float(cost.total_cost)
+
+            # Calculate sales revenue
+            total_sales_revenue += float(sale.unit_sale_price) * \
+                int(sale.quantity_sold)
+            total_quantity_sold += float(sale.quantity_sold)
+
+            # .quantize(Decimal('0.01'))
+
+    return total_sales_revenue, total_profit_amount, total_quantity_sold, total_cost
+
+
+def calculate_analytics(user):
+    # Get sales analytics data from the helper function
+    total_sales_revenue, total_profit_amount, total_quantity_sold, total_cost = calculate_sales_analytics(
+        user.products)
+
+    # Calculate average profit margin (ensure no division by zero)
+    if total_sales_revenue > 0:
+        average_profit_margin = (
+            total_profit_amount / total_sales_revenue) * 100
+    else:
+        average_profit_margin = 0
+
+    # Prepare the final analytics result
+    sales_analytics = {
+        "total_sales_revenue": total_sales_revenue,
+        "total_profit_amount": total_profit_amount,
+        "total_cost": total_cost,
+        "total_quantity_sold": total_quantity_sold,
+        "average_profit_margin": average_profit_margin
+    }
+
+    return sales_analytics
+
+
+
+
 
 

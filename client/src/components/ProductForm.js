@@ -6,7 +6,7 @@ import { stringFormatter } from "../utils";
 
 // Validation Schemas
 const ValidationSchema = Yup.object().shape({
-  // format description intial upper rest is lower. stringFormatter
+  // format description initial upper rest is lower. stringFormatter
   description: Yup.string()
     .required("Description is required")
     .transform((value) => stringFormatter(value)),
@@ -16,31 +16,38 @@ const ValidationSchema = Yup.object().shape({
   shipping_cost: Yup.number().required("Shipping cost is required"),
   packaging_cost: Yup.number().required("Packaging cost is required"),
   unit_sale_price: Yup.number().required("Product sale price is required"),
-  quantity_purchased: Yup.number().required("Quantity Purchased is required"),
+  quantity_purchased: Yup.number()
+    .required("Quantity Purchased is required")
+    .test(
+      "quantity-purchased-greater-than-sold",
+      "Quantity Purchased must be greater than or equal to Quantity Sold",
+      function (value) {
+        const { quantity } = this.parent; // `quantity` refers to `quantity_sold` in the form values
+        return value >= quantity; // Ensure quantity_purchased is >= quantity_sold
+      }
+    ),
 });
 
 const ProductForm = ({
   onClose,
-  consolidatedProductData,
   selectedOption,
   selectedProductId,
   formAction,
   onOperationComplete,
 }) => {
-  const { addProduct, addProductSale } = useContext(SalesContext);
+  const { salesData, addProduct, addProductSale, error } = useContext(SalesContext);
 
   // if formAction is add_product => show the form w all the fields.(1)
   // if edit_metrics => show the form w product description.
 
-  const relevantData =
-    consolidatedProductData.length > 0 ? consolidatedProductData : null;
+  // else, use salesData to find the product.
+  const relevantData = salesData;
+  const product = relevantData.find((item) => item.id === selectedProductId);
 
-  console.log(relevantData)
+  // If the product is found, get the product description; otherwise, default to "Unknown Product"
+  const productDescription = product? product.description : "Unknown Product";
 
-  // Fetch or handle data for the selected product, by productId.
-  const productData = selectedProductId
-    ? relevantData.filter((product) => product.productId === selectedProductId)
-    : null;
+ const quantityPurchased = product? product.total_quantity_purchased : 0;
 
   //if selectedOption is "edit_metrics" => user will be able to see product form w product description initialized in the field.
   //then sends POST request to /user_sales/product_id => updateProfitMetrics w product_id.(new sale addition)
@@ -49,17 +56,14 @@ const ProductForm = ({
     initialValues:
       selectedOption === "edit_metrics"
         ? {
-            description:
-              selectedOption === "edit_metrics" && productData
-                ? productData[0]["description"]
-                : "", // Initialize with product description if available
+            description: productDescription, // Initialize with product description if available
             unit_value: "",
             quantity: "",
             marketing_cost: "",
             shipping_cost: "",
             packaging_cost: "",
             unit_sale_price: "",
-            quantity_purchased: "",
+            quantity_purchased: quantityPurchased,
           }
         : {
             description: "",
@@ -76,8 +80,9 @@ const ProductForm = ({
     onSubmit: async (values) => {
       //async API call
       try {
-        if (selectedOption === "edit_metrics" && productData) {
-          await addProductSale(values, selectedProductId);
+        if (selectedOption === "edit_metrics") {
+          //POST request for Profit Data.
+          await addProductSale(values, product.id);
         } else {
           await addProduct(values);
         }
@@ -102,9 +107,7 @@ const ProductForm = ({
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           {formAction === "add_product"
             ? "Add New Profit data"
-            : `Add New Sale Data for Product: ${
-                productData[0]?.description || "Unknown Product"
-              }`}
+            : `Edit Profit Data for Product: ${productDescription}`}
         </h2>
         <form onSubmit={formik.handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -257,7 +260,7 @@ const ProductForm = ({
                 htmlFor="quantity_purchased"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Quantity Purchased
+                Total Quantity Purchased
               </label>
               <input
                 id="quantity_purchased"

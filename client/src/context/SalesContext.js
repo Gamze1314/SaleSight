@@ -1,11 +1,26 @@
-import React, { createContext, useState, useEffect, useMemo } from "react";
+import React, { createContext, useState, useEffect } from "react";
 
 export const SalesContext = createContext();
 
 export const SalesProvider = ({ children }) => {
+  // state to hold user sales, profit and cost.
   const [salesData, setSalesData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [salesAnalyticsData, setSalesAnalyticsData] = useState(null);
+
+    // Fetching sale analytics data on component mount
+    useEffect(() => {
+      fetch("/sales_analytics")
+        .then((response) => response.json())
+        .then((data) => {
+          setSalesAnalyticsData(data);
+        })
+        .catch((error) => setError(error));
+    }, []);
+
+    console.log(salesAnalyticsData);
+
 
   // Fetch initial sales data
   useEffect(() => {
@@ -28,7 +43,6 @@ export const SalesProvider = ({ children }) => {
       } catch (err) {
         setError(err.message);
         console.log(err.message);
-        console.error("Fetch error:", err);
       } finally {
         setLoading(false); // stop loading.
       }
@@ -38,53 +52,6 @@ export const SalesProvider = ({ children }) => {
 
   console.log(salesData);
 
-  // API Call -> salesData update -> memoizedProductPageData recalculation -> productPageData update
-
-  // processed for Profit Hub page.
-  const { userSales, saleCosts, userData, userProducts, processedData } =
-    useMemo(() => {
-      // Flatten and process data
-      const userSales = salesData.flatMap(
-        (profitData) => profitData.sales || []
-      );
-      const saleCosts = salesData.flatMap(
-        (profitData) => profitData.costs || []
-      );
-      const userData = salesData.flatMap((profitData) => profitData.user || []);
-
-      const userProducts = salesData.flatMap(
-        (profitData) => profitData.product || []
-      );
-
-      const processedData = userSales.map((sale) => {
-        const relevantCosts = saleCosts.filter(
-          (cost) => cost.profit_id === sale.profit_id
-        );
-
-        const totalCost = relevantCosts.reduce(
-          (acc, cost) => acc + parseFloat(cost.total_cost || 0),
-          0
-        );
-
-        const revenue = parseFloat(sale.sales_revenue || 0);
-        const profit = revenue - totalCost; // calculates profit correctly.(with positive, and negative values)
-
-        return {
-          id: sale.id,
-          date: new Date(sale.sale_date).toLocaleDateString(),
-          revenue,
-          margin: sale.profit_margin,
-          cost: totalCost,
-          profit,
-          quantity: Number(sale.quantity_sold || 0),
-          sale_date: sale.sale_date,
-        };
-      });
-
-      return { userSales, saleCosts, userData, userProducts, processedData };
-    }, [salesData]);
-
-  console.log(salesData);
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
@@ -111,11 +78,11 @@ export const SalesProvider = ({ children }) => {
     }
   };
 
-  console.log(salesData);
 
+  // add sale, cost, profit data for the selected prodcut.(ProductForm)
   const addProductSale = async (values, productId) => {
     try {
-      const response = await fetch(`/product_sales/${productId}`, {
+      const response = await fetch(`/user_products/${productId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -124,17 +91,17 @@ export const SalesProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error(
-          `Failed to update profit metrics: ${response.statusText}`
-        );
+        console.log(`Failed to add profit metrics: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log("Profit metrics updated successfully:", data);
-      //  update your products list or trigger a refresh
-      console.log(data);
-      setSalesData((prevData) =>
-        prevData.map((item) => (item.product_id === productId ? data : item))
-      );
+      console.log("Profit metrics added successfully:", data);
+
+      // update Sale Analytics and salesData state here
+      const { sale_data, sales_analytics } = data;
+      
+      setSalesData(sale_data);
+      setSalesAnalyticsData(sales_analytics);
+
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
     }
@@ -143,21 +110,72 @@ export const SalesProvider = ({ children }) => {
   const clearError = () => setError(null);
 
   // API DELETE request for product deletion
-  console.log(salesData);
+  const deleteProductSale = async (saleId) => {
+    try {
+      const response = await fetch(`/user_sales/${saleId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to delete profit: ${response.statusText}`);
+      }
+      console.log("Sale Data deleted successfully:", saleId);
+      //  update state, remove sale data from product.sales array
+      // Step 1: Remove the deleted sale from the salesData
+      const updatedSalesData = salesData.map((product) => {
+        // Filter out the sale with the matching ID for the product
+        const updatedSales = product.sales.filter(
+          (sale) => sale.sale_id !== saleId
+        );
+
+        // Step 2: Recalculate totals for this product
+        const totalSalesRevenue = updatedSales.reduce(
+          (sum, sale) => sum + (sale.sales_revenue || 0),
+          0
+        );
+        const totalProfitAmount = updatedSales.reduce(
+          (sum, sale) => sum + (sale.profit_amount || 0),
+          0
+        );
+        const totalCost = updatedSales.reduce(
+          (sum, sale) => sum + (sale.total_cost || 0),
+          0
+        );
+
+        // Return the updated product with updated sales and totals
+        return {
+          ...product,
+          sales: updatedSales,
+          total_sales_revenue: totalSalesRevenue,
+          total_profit_amount: totalProfitAmount,
+          total_cost: totalCost,
+        };
+      });
+
+      // Step 3: Update the state with the updatedSalesData
+      setSalesData(updatedSalesData);
+
+      // update salesAnalytics
+      const data = response.sales_analytics
+
+      console.log(data)
+      setSalesAnalyticsData(data);
+
+    } catch (error) {
+      console.error("Error deleting sale:", error.message);
+    }
+  };
 
   return (
     <SalesContext.Provider
       value={{
         salesData,
-        processedData,
-        userData,
-        userProducts,
-        userSales,
-        saleCosts,
+        salesAnalyticsData,
         error,
         clearError,
         addProduct,
         addProductSale,
+        deleteProductSale,
       }}
     >
       {loading ? (

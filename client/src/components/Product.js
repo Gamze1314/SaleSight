@@ -1,21 +1,33 @@
 import React, { useState } from "react";
 
-function Product({ profit, index, onOptionSelect }) {
-  // manage state in child component for each selection change.
+function Product({ product, index, onOptionSelect }) {
+  // Manage state for each selection change
   const [selectedOption, setSelectedOption] = useState("none");
 
-  // console.log(profit.profitId, profit.productId)
+  // Destructure the necessary values from the product and sales data
+  const {
+    description,
+    sales,
+    total_sales_revenue,
+  } = product;
 
-  // if view_sales => displayes the product sales.
-  // if edit_metrics => show ProductForm with selected product sale/cost information.(ex:  Add new sale for Product A)
-  // ProductForm needs to know about the selectedOption, and productId.
+  // Calculate the total quantity sold and purchased
+  const totalQuantityPurchased = sales.reduce(
+    (acc, sale) => acc + sale.quantity_purchased,
+    0
+  );
+  const totalQuantitySold = sales.reduce(
+    (acc, sale) => acc + sale.quantity_sold,
+    0
+  );
 
   const handleSelect = (event) => {
     const value = event.target.value;
     setSelectedOption(value);
 
+    // Handle selection and pass the action up to the parent component
     if (value === "view_sales" || value === "edit_metrics") {
-      onOptionSelect(profit.productId, value); // Pass selected product and action up
+      onOptionSelect(product.id, value); // Pass selected product and action up
     } else {
       onOptionSelect(null, "none"); // Reset selection
     }
@@ -28,11 +40,11 @@ function Product({ profit, index, onOptionSelect }) {
     <tr className="border-b">
       <td className="p-3 text-left">
         <span className="font-bold mr-2">{index + 1}. &nbsp;</span>
-        {profit.description}
+        {description}
       </td>
-      <td className="p-3 text-left">${profit.total_sales_revenue}</td>
-      <td className="p-3 text-left">{profit.total_quantity_purchased}</td>
-      <td className="p-3 text-left">{profit.total_quantity_sold}</td>
+      <td className="p-3 text-left">${total_sales_revenue.toFixed(2)}</td>
+      <td className="p-3 text-left">{totalQuantityPurchased}</td>
+      <td className="p-3 text-left">{totalQuantitySold}</td>
       <td>
         <select
           className="h-10 w-full rounded border border-solid border-neutral-300 px-4 text-sm"
@@ -41,9 +53,7 @@ function Product({ profit, index, onOptionSelect }) {
         >
           <option value="none">Select</option>
           <option value="view_sales">View Profit Table</option>
-          <option value="edit_metrics">Add New Profit Metrics</option>
-          {/* option to delete existing profit data for selected product */}
-          <option value="delete_metric">Delete Existing Profit</option>
+          <option value="edit_metrics">Add Profit Metrics</option>
         </select>
       </td>
     </tr>

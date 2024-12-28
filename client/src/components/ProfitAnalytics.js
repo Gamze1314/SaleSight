@@ -14,34 +14,35 @@ import {
 import { formatCurrency, formatProfitMargin, stringFormatter } from "../utils";
 
 function ProfitAnalytics() {
-  // userProducts used to displayed all product descriptions on Related Information.
-  const { processedData, userProducts } = useContext(SalesContext);
+  const { salesData, salesAnalyticsData } = useContext(SalesContext);
   const { currentUser } = useContext(AuthContext);
   const { name } = currentUser;
 
-  // format username , first letter capitalized, the rest lowercase
+  // Format username: first letter capitalized, the rest lowercase
   const formattedUsername = stringFormatter(name);
 
-  userProducts.forEach((product) => {
-    return stringFormatter(product.description);
-  });
+  const firstRecord = salesData || [];
 
-  const firstRecord = processedData || {};
+  // Format data for Profit Trend chart
+  const chartData = salesAnalyticsData.map((sale) => ({
+    sale_date: new Date().toLocaleDateString(),
+    profit: sale.total_profit_amount, // Assuming you have profit amount
+    margin: sale.average_profit_margin, // Assuming margin is available
+    average_profit_margin: sale.average_profit_margin, // Adding the average profit margin to chart data
+  }));
+
+  console.log(chartData);
 
   return (
     <div className="space-y-6 p-4">
       <h2 className="text-2xl font-semibold mb-6">Profit Analytics</h2>
-      {processedData.length === 0 ? (
+      {salesData.sales?.length === 0 ? (
         <p>No data available</p>
       ) : (
         <p>Please click on the blue dot to display profit details.</p>
       )}
-      <ChartContainer data={processedData} />
-      <RelatedInfo
-        data={firstRecord}
-        username={formattedUsername}
-        userProducts={userProducts}
-      />
+      <ChartContainer data={chartData} />
+      <RelatedInfo data={firstRecord} username={formattedUsername} />
     </div>
   );
 }
@@ -66,13 +67,11 @@ const ChartContainer = ({ data }) => (
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="sale_date"
-            // formats date related data.
             tickFormatter={(value) => new Date(value).toLocaleDateString()}
           />
-          <YAxis tickFormatter={formatMargin} />
+          <YAxis />
           <Tooltip formatter={formatMargin} />
           <Legend />
-          {/* Display Profit Amount */}
           <Line
             type="monotone"
             dataKey="profit"
@@ -87,21 +86,6 @@ const ChartContainer = ({ data }) => (
             name="Margin"
             strokeWidth={2}
             dot={false}
-            label={(props) => {
-              const { x, y, value } = props;
-              return (
-                <text
-                  x={x - 20}
-                  y={y}
-                  dy={-5}
-                  fill="#4CAF50"
-                  fontSize={14}
-                  textAnchor="middle"
-                >
-                  {`${value}%`}
-                </text>
-              );
-            }}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -109,17 +93,16 @@ const ChartContainer = ({ data }) => (
   </div>
 );
 
-const RelatedInfo = ({ data, username, userProducts }) => (
+const RelatedInfo = ({ data, username }) => (
   <div className="bg-white shadow rounded-lg p-6">
     <h4 className="text-lg font-medium mb-4">Related Information</h4>
-    {data ? (
+    {data?.length > 0 ? (
       <div>
         <p className="font-medium">User: {username}</p>
-        {/* return all product desc. from userProducts array. */}
         <p className="font-medium">
-          Products: {/* IF NO PRODUCT FOUND, NO PRODUCTS IN THE INVENTORY */}
-          {userProducts.length === 0 ? "No products found." : ""}
-          {userProducts.map((product) => product.description).join(", ")}
+          Products:{" "}
+          {data.map((product) => product.description).join(", ") ||
+            "No products found."}
         </p>
       </div>
     ) : (

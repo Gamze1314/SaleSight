@@ -1,8 +1,8 @@
-"""initial migration
+"""Updated foreign keys and relationships in models
 
-Revision ID: e4813b7cf0aa
+Revision ID: 26ee7732cc31
 Revises: 
-Create Date: 2024-12-14 19:00:43.534999
+Create Date: 2024-12-27 01:09:50.092375
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'e4813b7cf0aa'
+revision = '26ee7732cc31'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -39,47 +39,59 @@ def upgrade():
     sa.UniqueConstraint('name', name=op.f('uq_users_name')),
     sa.UniqueConstraint('username', name=op.f('uq_users_username'))
     )
-    op.create_table('profits',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('profit_amount', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('margin', sa.Numeric(precision=5, scale=2), nullable=False),
-    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.Column('product_id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['product_id'], ['products.id'], name=op.f('fk_profits_product_id_products')),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_profits_user_id_users')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_profits'))
-    )
-    op.create_table('costs',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('quantity_purchased', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('unit_value', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('marketing_cost', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('shipping_cost', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('packaging_cost', sa.Numeric(precision=10, scale=2), nullable=False),
-    sa.Column('profit_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['profit_id'], ['profits.id'], name=op.f('fk_costs_profit_id_profits')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_costs'))
-    )
     op.create_table('product_sales',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('unit_sale_price', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('quantity_sold', sa.Integer(), nullable=False),
     sa.Column('sale_date', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.Column('profit_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['profit_id'], ['profits.id'], name=op.f('fk_product_sales_profit_id_profits')),
+    sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['product_id'], ['products.id'], name=op.f('fk_product_sales_product_id_products')),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_product_sales_user_id_users')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_product_sales'))
+    )
+    op.create_table('user_products',
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('product_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.ForeignKeyConstraint(['product_id'], ['products.id'], name=op.f('fk_user_products_product_id_products')),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_user_products_user_id_users')),
+    sa.PrimaryKeyConstraint('user_id', 'product_id', name=op.f('pk_user_products'))
+    )
+    op.create_table('costs',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('quantity_purchased', sa.Integer(), nullable=False),
+    sa.Column('unit_value', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('marketing_cost', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('shipping_cost', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('packaging_cost', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('sale_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['sale_id'], ['product_sales.id'], name=op.f('fk_costs_sale_id_product_sales')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_costs'))
+    )
+    op.create_table('profits',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('profit_amount', sa.Numeric(precision=10, scale=2), nullable=False),
+    sa.Column('margin', sa.Numeric(precision=5, scale=2), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('sale_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['sale_id'], ['product_sales.id'], name=op.f('fk_profits_sale_id_product_sales')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_profits'))
     )
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('product_sales')
-    op.drop_table('costs')
     op.drop_table('profits')
+    op.drop_table('costs')
+    op.drop_table('user_products')
+    op.drop_table('product_sales')
     op.drop_table('users')
     op.drop_table('products')
     # ### end Alembic commands ###
