@@ -35,7 +35,7 @@ const ProductForm = ({
   formAction,
   onOperationComplete,
 }) => {
-  const { salesData, addProduct, addProductSale, error } = useContext(SalesContext);
+  const { salesData, addProduct, addProductSale } = useContext(SalesContext);
 
   // if formAction is add_product => show the form w all the fields.(1)
   // if edit_metrics => show the form w product description.
