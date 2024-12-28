@@ -32,20 +32,21 @@ function ProductsList({ onOptionSelect }) {
         </thead>
         {/* Table Body */}
         <tbody>
-          {salesData.sales?.length === 0 ? (
+          {salesData.length === 0 || salesData.sales?.length === 0 ? (
             <tr>
               <td colSpan="5" className="text-center">
-                No sales data found.
+                No product and sales data found.
               </td>
-            </tr> ) : (
-                salesData.map((productSale, index) => (
-                  <Product
-                    key={productSale.id}
-                    product={productSale}
-                    index={index}
-                    onOptionSelect={onOptionSelect}
-                  />
-                ))
+            </tr>
+          ) : (
+            salesData.map((productSale, index) => (
+              <Product
+                key={productSale.id}
+                product={productSale}
+                index={index}
+                onOptionSelect={onOptionSelect}
+              />
+            ))
           )}
         </tbody>
       </table>

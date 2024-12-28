@@ -8,7 +8,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import { AuthProvider } from "./context/AuthContext";
 import { SalesProvider } from "./context/SalesContext";
-import ProductsPage from "./pages/ProductsPage"
+import ProductsPage from "./pages/ProductsPage";
 
 // Create router configuration
 const router = createBrowserRouter([
@@ -19,7 +19,11 @@ const router = createBrowserRouter([
         <App /> {/* Wrap App with AuthProvider */}
       </AuthProvider>
     ),
-    errorElement: <ErrorPage />,
+    errorElement: (
+      <SalesProvider>
+        <ErrorPage />
+      </SalesProvider>
+    ),
     children: [
       {
         path: "/",
@@ -43,19 +47,19 @@ const router = createBrowserRouter([
           {
             path: "profit_center",
             element: (
-                  <SalesProvider>
-                    <AnalyticsPage /> {/* Wrap App with AuthProvider */}
-                  </SalesProvider>
+              <SalesProvider>
+                <AnalyticsPage /> {/* Wrap App with AuthProvider */}
+              </SalesProvider>
             ),
           },
           {
             path: "my_store",
             element: (
               <SalesProvider>
-                <ProductsPage /> 
+                <ProductsPage />
               </SalesProvider>
             ),
-          }
+          },
         ],
       },
     ],

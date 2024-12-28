@@ -171,6 +171,8 @@ export const SalesProvider = ({ children }) => {
     }
   };
 
+  console.log(salesData)
+
   return (
     <SalesContext.Provider
       value={{
