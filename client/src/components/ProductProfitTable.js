@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
-function ProductSalesTable({ selectedProductId, onClose }) {
+function ProductProfitTable({ onClose }) {
   const { salesData, deleteProductSale } = useContext(SalesContext);
 
   const productSales = salesData
@@ -42,14 +42,10 @@ function ProductSalesTable({ selectedProductId, onClose }) {
     (a, b) => new Date(a.saleDate) - new Date(b.saleDate)
   );
 
-  console.log(sortedData)
-
   // deletes Profit Data(sales and costs for the selected Product.)
   const handleDelete = (saleId) => {
     alert("Are you sure you want to delete this profit metric?");
-    console.log(saleId);
     deleteProductSale(saleId);
-    // match productId w products state to keep the product listed if no profit found.
   };
 
   return (
@@ -162,4 +158,4 @@ function ProductSalesTable({ selectedProductId, onClose }) {
   );
 }
 
-export default ProductSalesTable;
+export default ProductProfitTable;

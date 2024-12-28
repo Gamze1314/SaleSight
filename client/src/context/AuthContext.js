@@ -1,16 +1,14 @@
-import React, { useState, useEffect, createContext  } from "react";
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect, createContext } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext(null); // Initial value null
 
-
 export const AuthProvider = ({ children }) => {
-    //user state variable to be provided to the entire app.
+  //user state variable to be provided to the entire app.
   const [currentUser, setCurrentUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null); // Error state
-  const navigate = useNavigate(); // 
- 
+  const navigate = useNavigate(); //
 
   // Check session on mount
   useEffect(() => {
@@ -27,14 +25,12 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         setError(err);
         console.error(err);
-        setIsAuthenticated(false)
+        setIsAuthenticated(false);
       }
     };
 
     checkSession();
   }, []);
-
-
 
   // Function to log in the user
   const login = async (username, password) => {
@@ -51,11 +47,11 @@ export const AuthProvider = ({ children }) => {
         const data = await response.json();
         setCurrentUser(data);
         setIsAuthenticated(true);
-        navigate('/my_store')
+        navigate("/my_store");
         setError(""); // Clear any previous error
       } else {
         const errorData = await response.json();
-        console.log(errorData)
+        console.log(errorData);
         setError(
           errorData.message ||
             "Failed to log in. Please check your credentials."
@@ -67,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // /signup 
+  // /signup
   const signup = async (username, password, name, email) => {
     try {
       const response = await fetch("/signup", {
@@ -90,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       setError("Signup request failed");
       console.error(err);
-      setIsAuthenticated(false)
+      setIsAuthenticated(false);
     }
   };
 
@@ -107,7 +103,6 @@ export const AuthProvider = ({ children }) => {
       console.error(err);
     }
   };
-
 
   return (
     <AuthContext.Provider
@@ -127,4 +122,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-

@@ -9,18 +9,15 @@ export const SalesProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [salesAnalyticsData, setSalesAnalyticsData] = useState(null);
 
-    // Fetching sale analytics data on component mount
-    useEffect(() => {
-      fetch("/sales_analytics")
-        .then((response) => response.json())
-        .then((data) => {
-          setSalesAnalyticsData(data);
-        })
-        .catch((error) => setError(error));
-    }, []);
-
-    console.log(salesAnalyticsData);
-
+  // Fetching sale analytics data on component mount
+  useEffect(() => {
+    fetch("/sales_analytics")
+      .then((response) => response.json())
+      .then((data) => {
+        setSalesAnalyticsData(data);
+      })
+      .catch((error) => setError(error));
+  }, []);
 
   // Fetch initial sales data
   useEffect(() => {
@@ -43,15 +40,13 @@ export const SalesProvider = ({ children }) => {
       } catch (err) {
         setError(err.message);
         console.log(err.message);
-      } finally {
-        setLoading(false); // stop loading.
       }
     };
+    setError(null);
     fetchSalesData();
   }, []);
 
   console.log(salesData);
-
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
@@ -65,10 +60,9 @@ export const SalesProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to add product: ${response.statusText}`);
+        setError(`Failed to add product: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log(data);
       console.log("Product and profit data added successfully:", data);
       // Update salesData
       setSalesData((prevData) => [...prevData, data]);
@@ -77,7 +71,6 @@ export const SalesProvider = ({ children }) => {
       setError(error.message);
     }
   };
-
 
   // add sale, cost, profit data for the selected prodcut.(ProductForm)
   const addProductSale = async (values, productId) => {
@@ -91,17 +84,16 @@ export const SalesProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        console.log(`Failed to add profit metrics: ${response.statusText}`);
+        setError(`Failed to add profit metrics: ${response.statusText}`);
       }
       const data = await response.json();
       console.log("Profit metrics added successfully:", data);
 
       // update Sale Analytics and salesData state here
       const { sale_data, sales_analytics } = data;
-      
+
       setSalesData(sale_data);
       setSalesAnalyticsData(sales_analytics);
-
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
     }
@@ -117,7 +109,7 @@ export const SalesProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to delete profit: ${response.statusText}`);
+        setError(`Failed to delete profit: ${response.statusText}`);
       }
       console.log("Sale Data deleted successfully:", saleId);
       //  update state, remove sale data from product.sales array
@@ -156,11 +148,8 @@ export const SalesProvider = ({ children }) => {
       setSalesData(updatedSalesData);
 
       // update salesAnalytics
-      const data = response.sales_analytics
-
-      console.log(data)
+      const data = response.sales_analytics;
       setSalesAnalyticsData(data);
-
     } catch (error) {
       console.error("Error deleting sale:", error.message);
     }
