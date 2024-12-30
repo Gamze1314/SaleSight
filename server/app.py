@@ -181,8 +181,9 @@ class SalesAnalytics(Resource):
 
                 # Calculate average profit margin (ensure no division by zero)
             if total_sales_revenue > 0:
-                average_profit_margin = (
-                    total_profit_amount / total_sales_revenue) * 100
+                average_profit_margin = round(
+                    (total_profit_amount / total_sales_revenue) * 100, 2
+                )
             else:
                 average_profit_margin = 0
 
@@ -204,8 +205,10 @@ class SalesAnalytics(Resource):
 
 api.add_resource(SalesAnalytics, '/sales_analytics')
 
+
+#Handles GET and DELETE requests.
 class UserProductSales(Resource):
-    def get(self, sale_id=None, product_id=None):
+    def get(self):
         user_id = session["user_id"]
 
         if not user_id:
@@ -303,6 +306,113 @@ class UserProductSales(Resource):
             db.session.rollback()
             abort(500, f"An error occurred: {str(e)}")
 
+#POST request handler => creates new product, sale, cost, profit data for new user. 
+    def post(self):
+        user_id = session.get("user_id")
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+
+        try:
+            data = request.get_json()
+
+            #create new product
+            
+            new_product = Product(description=data["description"])
+
+            db.session.add(new_product)
+            db.session.commit()
+
+            #user_product_association ?
+            user = User.query.get(user_id)
+            association = User_Product_Association(
+                user_id=user.id, product_id=new_product.id)
+            
+            # breakpoint()
+            
+            db.session.add(association)
+            db.session.commit()
+
+
+            # Create sale row for the product
+            new_sale = ProductSale(
+                unit_sale_price=data["unit_sale_price"],
+                quantity_sold=data["quantity"],
+                product_id=new_product.id,
+                user_id=user_id
+            )
+            db.session.add(new_sale)
+            db.session.commit()
+
+            # Create new cost
+            new_cost = Cost(
+                unit_value=data["unit_value"],
+                quantity_purchased=data["quantity_purchased"],
+                marketing_cost=data["marketing_cost"],
+                shipping_cost=data["shipping_cost"],
+                packaging_cost=data["packaging_cost"],
+                sale_id=new_sale.id
+            )
+            db.session.add(new_cost)
+            db.session.commit()
+
+            # Create new profit
+            new_profit = Profit(
+                profit_amount=0,
+                margin=0,
+                sale_id=new_sale.id
+            )
+            db.session.add(new_profit)
+            db.session.commit()
+
+            # Update profit metrics
+            update_profit_metrics(new_profit)
+
+            # Prepare the sale data object
+            sale_data = {
+                "sale_id": new_sale.id,
+                "unit_sale_price": f"{new_sale.unit_sale_price:.2f}",
+                "quantity_sold": new_sale.quantity_sold,
+                "quantity_purchased": new_cost.quantity_purchased,
+                "sales_revenue": round(new_sale.unit_sale_price * new_sale.quantity_sold, 2),
+                "total_cost": round(new_cost.marketing_cost + new_cost.shipping_cost +
+                                    new_cost.packaging_cost + new_cost.unit_value * new_cost.quantity_purchased, 2),
+                "profit_id": new_profit.id,
+                "profit_amount": round(new_profit.profit_amount, 2),
+                "profit_margin": round(new_profit.margin, 2),
+                "cost_id": new_cost.id,
+                "sale_date": new_sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            
+            # returns new product data object and new sale created in an array.
+            product_data = new_product.to_dict(only=("id", "description"))
+            product_data["sales"] = [sale_data]
+            product_data["total_sales_revenue"] = sale_data["quantity_sold"] * sale_data["unit_sale_price"]
+            product_data["total_profit_amount"] = sale_data["profit_amount"] 
+            product_data["total_cost"] = sale_data["total_cost"]
+
+
+            # Fetch the user object
+            user = User.query.filter_by(id=user_id).first()
+            if not user:
+                abort(404, "User not found")
+
+            # Prepare the sales analytics data using the helper function
+            sales_analytics = calculate_analytics(user)
+
+            # Prepare the response object with both sale data and sales analytics
+            response_body = {
+                "sale_data": product_data,
+                "sales_analytics": sales_analytics
+            }
+
+            # Return the response with combined totals and new sale data
+            return make_response(response_body, 201)
+
+        except Exception as e:
+            db.session.rollback()
+            abort(500, f"An error occurred: {str(e)}")
+
 
 # delete request handler here: deletes sale data and associated cost and profit.
     def delete(self, sale_id):
@@ -351,6 +461,7 @@ class UserProductSales(Resource):
 api.add_resource(UserProductSales, '/user_sales', '/user_sales/<int:sale_id>')
 
 
+#handles POST requests.(product sale by product id)
 class UserProducts(Resource):
     # Creates new sale, cost, profit data for the selected product.
     def post(self, product_id):
@@ -417,6 +528,34 @@ class UserProducts(Resource):
                 "sale_date": new_sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
             }
 
+            product_data = product.to_dict(only=("id","description"))
+            # product sales array update here.(calculates total sales revenues, ttl cost, and ttl profit for a product), adds keys to product_data
+            product_data["sales"] = [sale.to_dict() for sale in product.sales]
+            #get all sales_revenues from sale objects and find the total(updated)
+
+            updated_total_sales_revenue = 0
+            updated_profit_amount = 0
+            updated_total_cost = 0
+
+            for sale in product.sales:
+                updated_total_sales_revenue += float(sale.unit_sale_price * sale.quantity_sold)
+                updated_profit_amount += float(sale.profit_amount)
+
+                cost = sale.cost 
+
+                if cost:
+                    updated_total_cost += float(cost.total_cost)
+
+                profit = sale.profit
+
+                if profit:
+                    updated_profit_amount += float(profit.profit_amount)
+
+
+            product_data["total_sales_revenue"] = updated_total_sales_revenue
+            product_data["total_profit_amount"] = updated_profit_amount
+            product_data["total_cost"] = updated_total_cost
+
             # Fetch the user object
             user = User.query.filter_by(id=user_id).first()
             if not user:
@@ -427,7 +566,7 @@ class UserProducts(Resource):
 
             # Prepare the response object with both sale data and sales analytics
             response_body = {
-                "sale_data": sale_data,
+                "sale_data": product_data,
                 "sales_analytics": sales_analytics
             }
 

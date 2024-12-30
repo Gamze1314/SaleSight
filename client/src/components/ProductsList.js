@@ -2,7 +2,6 @@ import React, { useContext } from "react";
 import Product from "./Product";
 import { SalesContext } from "../context/SalesContext";
 
-
 function ProductsList({ onOptionSelect }) {
   const { loading, salesData } = useContext(SalesContext);
 
@@ -32,13 +31,7 @@ function ProductsList({ onOptionSelect }) {
         </thead>
         {/* Table Body */}
         <tbody>
-          {salesData.length === 0 || salesData.sales?.length === 0 ? (
-            <tr>
-              <td colSpan="5" className="text-center">
-                No product and sales data found.
-              </td>
-            </tr>
-          ) : (
+          {salesData && salesData.length > 0 ? (
             salesData.map((productSale, index) => (
               <Product
                 key={productSale.id}
@@ -47,6 +40,12 @@ function ProductsList({ onOptionSelect }) {
                 onOptionSelect={onOptionSelect}
               />
             ))
+          ) : (
+            <tr>
+              <td colSpan="5" className="text-center">
+                No product and sales data found.
+              </td>
+            </tr>
           )}
         </tbody>
       </table>

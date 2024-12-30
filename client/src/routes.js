@@ -16,13 +16,17 @@ const router = createBrowserRouter([
     path: "/",
     element: (
       <AuthProvider>
-        <App /> {/* Wrap App with AuthProvider */}
+        <SalesProvider>
+          <App /> {/* Wrap App with both providers */}
+        </SalesProvider>
       </AuthProvider>
     ),
     errorElement: (
-      <SalesProvider>
-        <ErrorPage />
-      </SalesProvider>
+      <AuthProvider>
+        <SalesProvider>
+          <ErrorPage />
+        </SalesProvider>
+      </AuthProvider>
     ),
     children: [
       {

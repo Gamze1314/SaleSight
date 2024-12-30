@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
           setError(""); // Clear any previous error
         }
       } catch (err) {
-        setError(err);
+        setError("An error occurred while checking session.");
         console.error(err);
         setIsAuthenticated(false);
       }
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   console.log(currentUser)
-  
+
   return (
     <AuthContext.Provider
       value={{

@@ -1,22 +1,22 @@
 import React, { useState } from "react";
+import { stringFormatter } from "../utils";
 
 function Product({ product, index, onOptionSelect }) {
   // Manage state for each selection change
   const [selectedOption, setSelectedOption] = useState("none");
 
   // Destructure the necessary values from the product and sales data
-  const {
-    description,
-    sales,
-    total_sales_revenue,
-  } = product;
+  const { description, sales, total_sales_revenue } = product;
+
+  // format description
+  const formattedDescription = stringFormatter(description);
 
   // Calculate the total quantity sold and purchased
-  const totalQuantityPurchased = sales.reduce(
+  const totalQuantityPurchased = sales?.reduce(
     (acc, sale) => acc + sale.quantity_purchased,
     0
   );
-  const totalQuantitySold = sales.reduce(
+  const totalQuantitySold = sales?.reduce(
     (acc, sale) => acc + sale.quantity_sold,
     0
   );
@@ -40,11 +40,11 @@ function Product({ product, index, onOptionSelect }) {
     <tr className="border-b">
       <td className="p-3 text-left">
         <span className="font-bold mr-2">{index + 1}. &nbsp;</span>
-        {description}
+        {formattedDescription}
       </td>
-      <td className="p-3 text-left">${total_sales_revenue.toFixed(2)}</td>
-      <td className="p-3 text-left">{totalQuantityPurchased}</td>
-      <td className="p-3 text-left">{totalQuantitySold}</td>
+      <td className="p-3 text-left">${total_sales_revenue || 0}</td>
+      <td className="p-3 text-left">{totalQuantityPurchased || 0}</td>
+      <td className="p-3 text-left">{totalQuantitySold || 0}</td>
       <td>
         <select
           className="h-10 w-full rounded border border-solid border-neutral-300 px-4 text-sm"

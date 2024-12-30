@@ -1,13 +1,15 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import MainNavBar from "../components/MainNavBar";
 import ProductsList from "../components/ProductsList";
 import ProductToolBar from "../components/ProductToolBar";
 import ProductForm from "../components/ProductForm";
 import ProductProfitTable from "../components/ProductProfitTable";
+import { SalesContext } from "../context/SalesContext";
 
 function ProductsPage() {
+  const { loading, salesData } = useContext(SalesContext);
   const [showForm, setShowForm] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedOption, setSelectedOption] = useState("none");
   const [formAction, setFormAction] = useState("");
 
@@ -18,19 +20,22 @@ function ProductsPage() {
     setFormAction("add_product"); // Set action for adding a new product
     setShowForm(true);
     setSelectedOption("none");
-    setSelectedProductId(null); // Reset selected product
+    setSelectedProduct(null); // Reset selected product
   };
 
   const handleOptionSelect = (productId, option) => {
     //SET PRODUCT ID
-    setSelectedProductId(productId);
-    // option "edit_metrics"
-    setSelectedOption(option);
-    if (option === "edit_metrics") {
-      setFormAction("edit_metrics");
-      setShowForm(true); // Show the form when "edit_metrics" is selected
-    } else {
-      setShowForm(false); // Hide the form for other options
+    const selectedProd = salesData.find((prod) => prod.id === productId);
+    if (selectedProd) {
+      setSelectedProduct(selectedProd);
+      // option "edit_metrics"
+      setSelectedOption(option);
+      if (option === "edit_metrics") {
+        setFormAction("edit_metrics");
+        setShowForm(true); // Show the form when "edit_metrics" is selected
+      } else {
+        setShowForm(false); // Hide the form for other options
+      }
     }
   };
 
@@ -39,7 +44,7 @@ function ProductsPage() {
     setShowForm(false);
     setFormAction(""); // Reset form action
     setSelectedOption("none"); // Reset the dropdown to "none"
-    setSelectedProductId(null); // Reset the selected product ID
+    setSelectedProduct(null); // Reset the selected product ID
   };
 
   return (
@@ -53,20 +58,20 @@ function ProductsPage() {
             // productProfits={productProfits}
             onClose={() => setShowForm(false)}
             selectedOption={selectedOption}
-            selectedProductId={selectedProductId} // Pass selectedProductId to the form
+            selectedProductId={selectedProduct?.id} // Pass selectedProductId to the form
             formAction={formAction} // Pass formAction to the form
             onOperationComplete={handleOperationComplete} // Handle operationComplete
           />
         )}
-        {selectedProductId && selectedOption === "view_sales" && (
+        {selectedProduct && selectedOption === "view_sales" && (
           <ProductProfitTable
             onClose={handleOperationComplete}
-            selectedProductId={selectedProductId}
+            selectedProduct={selectedProduct}
           />
         )}
         <ProductsList
           // productProfits={productProfits}
-          selectedProductId={selectedProductId}
+          // selectedProductId={selectedProductId}
           onOptionSelect={handleOptionSelect} //// Handle product and option selection
         />
       </div>

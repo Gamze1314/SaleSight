@@ -50,7 +50,6 @@ const ProductForm = ({
  const quantityPurchased = product? product.total_quantity_purchased : 0;
 
   //if selectedOption is "edit_metrics" => user will be able to see product form w product description initialized in the field.
-  //then sends POST request to /user_sales/product_id => updateProfitMetrics w product_id.(new sale addition)
 
   const formik = useFormik({
     initialValues:
@@ -81,10 +80,11 @@ const ProductForm = ({
       //async API call
       try {
         if (selectedOption === "edit_metrics") {
-          //POST request for Profit Data.
-          await addProductSale(values, product.id);
+          //POST request for sale, cost, profit data addition for the selected product.
+          addProductSale(values, product.id);
         } else {
-          await addProduct(values);
+          //POST request for new product, sale, cost, profit addition.
+          addProduct(values);
         }
         onClose(); // Close the form
         onOperationComplete(); // Reset parent component state
@@ -107,30 +107,32 @@ const ProductForm = ({
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           {formAction === "add_product"
             ? "Add New Profit data"
-            : `Edit Profit Data for Product: ${productDescription}`}
+            : `Add Profit Data for Product: ${productDescription}`}
         </h2>
         <form onSubmit={formik.handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Product Description
-              </label>
-              <input
-                id="description"
-                name="description"
-                className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
-                onChange={formik.handleChange}
-                value={formik.values.description}
-              />
-              {formik.errors.description && (
-                <p className="text-sm text-red-600">
-                  {formik.errors.description}
-                </p>
-              )}
-            </div>
+            {formAction !== "edit_metrics" ? (
+              <div>
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Product Description
+                </label>
+                <input
+                  id="description"
+                  name="description"
+                  className="block w-full rounded-md border-gray-300 shadow-md focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-3"
+                  onChange={formik.handleChange}
+                  value={formik.values.description}
+                />
+                {formik.errors.description && (
+                  <p className="text-sm text-red-600">
+                    {formik.errors.description}
+                  </p>
+                )}
+              </div>
+            ) : null}
             <div>
               <label
                 htmlFor="unit_value"

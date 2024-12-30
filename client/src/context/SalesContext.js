@@ -34,6 +34,7 @@ export const SalesProvider = ({ children }) => {
         if (res.status === 200) {
           const data = await res.json();
           setSalesData(data);
+          console.log("SALES DATA", data);
           setLoading(false); // Set loading to false once the data is fetched
         } else if (res.status === 404) {
           setError("No sales data found.");
@@ -53,7 +54,6 @@ export const SalesProvider = ({ children }) => {
     fetchSalesData();
   }, []);
 
-  console.log(salesData);
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
@@ -72,8 +72,20 @@ export const SalesProvider = ({ children }) => {
       }
       const data = await response.json();
       console.log("Product and profit data added successfully:", data);
-      // Update salesData
-      setSalesData((prevData) => [...prevData, data]);
+      // update salesAnalytics , salesData
+      const { sale_data, sales_analytics } = data;
+
+      setSalesData((prev) => {
+        console.log("NEWDATA", [...prev, sale_data]);
+        // state is being updated successfully.
+        return [...prev, sale_data];
+      });
+      // replaces existing object in the salesAnalyticsData state.
+      setSalesAnalyticsData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[0] = sales_analytics;
+        return updatedData;
+      });
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error adding product:", error);
@@ -103,14 +115,39 @@ export const SalesProvider = ({ children }) => {
       // update Sale Analytics and salesData state here
       const { sale_data, sales_analytics } = data;
 
-      setSalesData(sale_data);
-      setSalesAnalyticsData(sales_analytics);
+      console.log(
+        "Sales_analytics data updated in the backednd after sale addition",
+        sales_analytics
+      );
+      console.log("Sale_data after new sale addition", sale_data);
+      /*TODO:
+        sale_data is product_data including new sales created in sales array
+        Find product_data in salesData by productId
+        Copy salesData into new array object and replace product_data with productId with sale_data
+        setSalesData with copied array
+      */
+      const updatedProdDataIdx = salesData.findIndex(
+        (prod) => prod.id === productId
+      );
+      const updatedData = [...salesData];
+      updatedData.splice(updatedProdDataIdx, 1, sale_data);
+
+      setSalesData(updatedData); // updates the sales analytics and sales array for the product.
+      console.log(salesData);
+      // replaces existing object in the salesAnalyticsData state.
+      setSalesAnalyticsData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[0] = sales_analytics;
+        return updatedData;
+      });
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
       setLoading(false); // Set loading to false once the data is fetched
     }
   };
+
+  console.log("salesAnalytics Data", salesAnalyticsData)
 
   const clearError = () => setError(null);
 
@@ -171,11 +208,11 @@ export const SalesProvider = ({ children }) => {
     }
   };
 
-  console.log(salesData)
 
   return (
     <SalesContext.Provider
       value={{
+        loading,
         salesData,
         salesAnalyticsData,
         error,

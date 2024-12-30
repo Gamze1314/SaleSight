@@ -2,24 +2,24 @@ import React, { useContext } from "react";
 import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
-function ProductProfitTable({ onClose }) {
+function ProductProfitTable({ onClose, selectedProduct }) {
   const { salesData, deleteProductSale } = useContext(SalesContext);
 
-  const productSales = salesData
-    .map((productObj) => {
+  const productSales = selectedProduct?.sales
+    .map((sale) => {
       // product id
-      const productId = productObj.id;
+      // const productId = productObj.id;
       // Process each sale for the current product
-      const productDescription = productObj.description || "Unknown Product";
+      // const productDescription = productObj.description || "Unknown Product";
 
       // Process each sale for the current product
-      const sales = productObj.sales?.map((sale) => {
+      // const sales = productObj.sales?.map((sale) => {
         const salesRevenue = parseFloat(sale.sales_revenue) || 0;
         const quantitySold = parseInt(sale.quantity_sold) || 0;
         const totalCost = parseFloat(sale.total_cost) || 0;
         const profitAmount = parseFloat(sale.profit_amount) || 0;
 
-        return {
+        const saleInfo = {
           saleDate: new Date(sale.sale_date).toLocaleDateString(),
           salesRevenue: salesRevenue.toFixed(2),
           quantitySold: quantitySold,
@@ -27,15 +27,15 @@ function ProductProfitTable({ onClose }) {
           totalCost: totalCost.toFixed(2),
           profit: profitAmount.toFixed(2),
           saleId: sale.sale_id,
-          productId: productId,
-          productDescription: productDescription,
+          productId: selectedProduct.id,
+          productDescription: selectedProduct.description,
         };
-      });
+      // });
 
       // Return the sales array for the current product
-      return sales || [];
+      return saleInfo || [];
     })
-    .flat(); // Flatten the array of arrays to a single array of sales
+    // .flat(); // Flatten the array of arrays to a single array of sales
 
   // Sort the sales data by saleDate in ascending order
   const sortedData = productSales.sort(

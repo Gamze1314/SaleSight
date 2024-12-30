@@ -122,8 +122,9 @@ def calculate_analytics(user):
 
     # Calculate average profit margin (ensure no division by zero)
     if total_sales_revenue > 0:
-        average_profit_margin = (
-            total_profit_amount / total_sales_revenue) * 100
+        average_profit_margin = round(
+            (total_profit_amount / total_sales_revenue) * 100, 2
+        )
     else:
         average_profit_margin = 0
 
