@@ -1,51 +1,111 @@
-import React, { useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
 function ProductProfitTable({ onClose, selectedProduct }) {
-  const { salesData, deleteProductSale } = useContext(SalesContext);
+  const { deleteProductSale, updateSale, error, setError } = useContext(SalesContext);
+  const [editSaleId, setEditSaleId] = useState(null);
+  const [editValues, setEditValues] = useState({});
+  const [localData, setLocalData] = useState([]);
 
-  const productSales = selectedProduct?.sales
-    .map((sale) => {
-      // product id
-      // const productId = productObj.id;
-      // Process each sale for the current product
-      // const productDescription = productObj.description || "Unknown Product";
-
-      // Process each sale for the current product
-      // const sales = productObj.sales?.map((sale) => {
+  // Process and set initial data
+  useEffect(() => {
+    if (selectedProduct?.sales) {
+      const processedSales = selectedProduct.sales?.map((sale) => {
         const salesRevenue = parseFloat(sale.sales_revenue) || 0;
         const quantitySold = parseInt(sale.quantity_sold) || 0;
-        const totalCost = parseFloat(sale.total_cost) || 0;
-        const profitAmount = parseFloat(sale.profit_amount) || 0;
+        const totalCost = selectedProduct?.total_cost || 0;
+        const profitAmount = salesRevenue - totalCost || 0;
 
-        const saleInfo = {
+        return {
           saleDate: new Date(sale.sale_date).toLocaleDateString(),
-          salesRevenue: salesRevenue.toFixed(2),
+          salesRevenue: salesRevenue.toFixed(2) || 0,
           quantitySold: quantitySold,
-          unitSalePrice: parseFloat(sale.unit_sale_price).toFixed(2),
-          totalCost: totalCost.toFixed(2),
-          profit: profitAmount.toFixed(2),
+          unitSalePrice: parseFloat(sale.unit_sale_price).toFixed(2) || 0,
+          totalCost: parseFloat(totalCost).toFixed(2) || 0,
+          profit: parseFloat(profitAmount).toFixed(2) || 0,
           saleId: sale.sale_id,
           productId: selectedProduct.id,
           productDescription: selectedProduct.description,
+          quantityPurchased: sale.quantity_purchased,
         };
-      // });
+      });
 
-      // Return the sales array for the current product
-      return saleInfo || [];
-    })
-    // .flat(); // Flatten the array of arrays to a single array of sales
+      // Sort the data
+      const sortedData = processedSales.sort(
+        (a, b) => new Date(a.saleDate) - new Date(b.saleDate)
+      );
 
-  // Sort the sales data by saleDate in ascending order
-  const sortedData = productSales.sort(
-    (a, b) => new Date(a.saleDate) - new Date(b.saleDate)
-  );
+      setLocalData(sortedData);
+    }
+  }, [selectedProduct]);
 
-  // deletes Profit Data(sales and costs for the selected Product.)
-  const handleDelete = (saleId) => {
-    alert("Are you sure you want to delete this profit metric?");
+  const handleDelete = async (saleId) => {
+    alert("Are you sure you want to delete this profit metric?")
     deleteProductSale(saleId);
+      // Update local data after successful deletion
+      setLocalData((prevData) =>
+        prevData.filter((sale) => sale.saleId !== saleId)
+      );
+    
+  };
+
+  const handleUpdate = (saleId) => {
+    setEditSaleId(saleId);
+    const sale = localData.find((sale) => sale.saleId === saleId);
+    setEditValues({
+      quantitySold: sale.quantitySold,
+      unitSalePrice: sale.unitSalePrice,
+      quantityPurchased: sale.quantityPurchased,
+    });
+  };
+
+  const handleSave = async (saleId) => {
+    if (editValues.quantityPurchased > editValues.quantitySold) {
+      alert("Quantity sold cannot be greater than quantity purchased.");
+      return;
+    }
+
+    try {
+
+      const updatedValues = {
+              quantity_sold: parseInt(editValues.quantitySold, 10),
+              unit_sale_price: parseFloat(editValues.unitSalePrice),
+            };
+
+      const updatedSale = await updateSale(editValues, saleId);
+
+      const updatedSales = localData.map((sale) =>
+        sale.saleId === saleId
+          ? {
+              ...sale,
+              quantitySold: updatedValues.quantity_sold,
+              unitSalePrice: updatedValues.unit_sale_price.toFixed(2),
+              salesRevenue: (
+                updatedValues.quantity_sold * updatedValues.unit_sale_price
+              ).toFixed(2),
+              profit: (
+                updatedValues.quantity_sold * updatedValues.unit_sale_price -
+                parseFloat(sale.totalCost)
+              ).toFixed(2),
+            }
+          : sale
+      );
+      setLocalData(updatedSales);
+      setEditSaleId(null);
+    } catch (err) {
+      alert("Failed to update ")
+      console.error("Failed to update sale:", err);
+      // Handle error appropriately
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setEditValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }));
   };
 
   return (
@@ -57,12 +117,12 @@ function ProductProfitTable({ onClose, selectedProduct }) {
         >
           ✕
         </button>
-        {sortedData.length > 0 ? (
+        <p className="text-red-700">{error}</p>
+        {localData.length > 0 ? (
           <>
             <h4 className="text-lg font-medium mb-4">
-              Profit Details for Product: {sortedData[0].productDescription}
+              Sales for Product: {localData[0].productDescription}
             </h4>
-
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -70,21 +130,47 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                     <th className="p-2 text-left">Sale ID</th>
                     <th className="p-2 text-left">Date</th>
                     <th className="p-2 text-right">Quantity Sold</th>
-                    <th className="p-2 text-right">Unit Value</th>
-                    <th className="p-2 text-right">Sale Revenue</th>
+                    <th className="p-2 text-right">Sale Price</th>
+                    <th className="p-2 text-right">Sales Revenue</th>
                     <th className="p-2 text-right">Total Cost</th>
-                    <th className="p-2 text-right">Profit</th>
+                    <th className="p-2 text-right">
+                      {selectedProduct?.total_profit_amount < 0
+                        ? "Loss"
+                        : "Profit"}
+                    </th>
                     <th className="p-2 text-center"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedData.map((sale, index) => (
+                  {localData.map((sale, index) => (
                     <tr key={sale.saleId} className="border-b hover:bg-gray-50">
                       <td className="p-2">{index + 1}</td>
                       <td className="p-2">{sale.saleDate}</td>
-                      <td className="p-2 text-right">{sale.quantitySold}</td>
                       <td className="p-2 text-right">
-                        {formatCurrency(sale.unitSalePrice)}
+                        {editSaleId === sale.saleId ? (
+                          <input
+                            type="number"
+                            name="quantitySold"
+                            value={editValues.quantitySold}
+                            onChange={handleChange}
+                            className="w-full text-right"
+                          />
+                        ) : (
+                          sale.quantitySold
+                        )}
+                      </td>
+                      <td className="p-2 text-right">
+                        {editSaleId === sale.saleId ? (
+                          <input
+                            type="number"
+                            name="unitSalePrice"
+                            value={editValues.unitSalePrice}
+                            onChange={handleChange}
+                            className="w-full text-right"
+                          />
+                        ) : (
+                          formatCurrency(sale.unitSalePrice)
+                        )}
                       </td>
                       <td className="p-2 text-right">
                         {formatCurrency(sale.salesRevenue)}
@@ -95,15 +181,33 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                       <td className="p-2 text-right">
                         {formatCurrency(sale.profit)}
                       </td>
-                      <td className="p-2 text-center">
-                        <button
-                          className="text-red-500 hover:underline"
-                          onClick={() =>
-                            handleDelete(sale.saleId)
-                          }
-                        >
-                          Delete
-                        </button>
+                      <td className="p-2 text-center flex justify-center">
+                        {/* conditional rendering if edit is clicked , hide delete, show save. */}
+                        {editSaleId === sale.saleId ? (
+                          <>
+                            <button
+                              className="text-green-500 mr-4 hover:underline"
+                              onClick={() => handleSave(sale.saleId)}
+                            >
+                              Save
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="text-blue-500 mr-4 hover:underline"
+                              onClick={() => handleUpdate(sale.saleId)}
+                            >
+                              Update
+                            </button>
+                            <button
+                              className="text-red-500 font-bold hover:underline"
+                              onClick={() => handleDelete(sale.saleId)}
+                            >
+                              X
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -114,7 +218,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                       Totals:
                     </td>
                     <td className="p-2 text-right">
-                      {sortedData.reduce(
+                      {localData.reduce(
                         (sum, sale) => sum + sale.quantitySold,
                         0
                       )}
@@ -122,7 +226,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                     <td className="p-2 text-right">-</td>
                     <td className="p-2 text-right">
                       {formatCurrency(
-                        sortedData.reduce(
+                        localData.reduce(
                           (sum, sale) => sum + parseFloat(sale.salesRevenue),
                           0
                         )
@@ -130,7 +234,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                     </td>
                     <td className="p-2 text-right">
                       {formatCurrency(
-                        sortedData.reduce(
+                        localData.reduce(
                           (sum, sale) => sum + parseFloat(sale.totalCost),
                           0
                         )
@@ -138,7 +242,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                     </td>
                     <td className="p-2 text-right">
                       {formatCurrency(
-                        sortedData.reduce(
+                        localData.reduce(
                           (sum, sale) => sum + parseFloat(sale.profit),
                           0
                         )

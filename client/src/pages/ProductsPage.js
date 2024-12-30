@@ -13,6 +13,9 @@ function ProductsPage() {
   const [selectedOption, setSelectedOption] = useState("none");
   const [formAction, setFormAction] = useState("");
 
+  // edit sale mode => formAction(""), showForm(False), selectedOption("view_sales"), selectedProduct = (not null),
+  // show ProductSaleTable with product and sale details.
+
   // update state depending on the action if edit mode then " edit_metrics"
   // if add_product... "add_product"
 
@@ -22,7 +25,6 @@ function ProductsPage() {
     setSelectedOption("none");
     setSelectedProduct(null); // Reset selected product
   };
-
   const handleOptionSelect = (productId, option) => {
     //SET PRODUCT ID
     const selectedProd = salesData.find((prod) => prod.id === productId);
@@ -47,6 +49,10 @@ function ProductsPage() {
     setSelectedProduct(null); // Reset the selected product ID
   };
 
+  const handleEditFormDisplay = () => {
+    setShowForm(false);
+  };
+
   return (
     <div className="flex items-center justify-between w-full mt-10">
       <MainNavBar />
@@ -55,7 +61,6 @@ function ProductsPage() {
         {/* Render the form if "edit_metrics" is selected */}
         {showForm && (
           <ProductForm
-            // productProfits={productProfits}
             onClose={() => setShowForm(false)}
             selectedOption={selectedOption}
             selectedProductId={selectedProduct?.id} // Pass selectedProductId to the form
@@ -67,11 +72,16 @@ function ProductsPage() {
           <ProductProfitTable
             onClose={handleOperationComplete}
             selectedProduct={selectedProduct}
+            onEdit={handleEditFormDisplay}
           />
         )}
+        {/* {selectedProduct && showEditForm && (
+          <ProductSaleEditForm
+            onClose={handleOperationComplete}
+            selectedProduct={selectedProduct}
+          />
+        )} */}
         <ProductsList
-          // productProfits={productProfits}
-          // selectedProductId={selectedProductId}
           onOptionSelect={handleOptionSelect} //// Handle product and option selection
         />
       </div>

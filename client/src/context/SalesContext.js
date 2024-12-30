@@ -54,9 +54,21 @@ export const SalesProvider = ({ children }) => {
     fetchSalesData();
   }, []);
 
-
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
+    // Declare variables
+    const prodDescription = values["description"];
+
+    // Check if the product exists in salesData
+    const prod = salesData.find(
+      (prodData) => prodData.description === prodDescription
+    );
+    if (prod) {
+      alert(`${prodDescription} already exists in the inventory.`);
+      setError("Product already exists.");
+      return;
+    }
+
     try {
       const response = await fetch("/user_sales", {
         method: "POST",
@@ -68,29 +80,32 @@ export const SalesProvider = ({ children }) => {
 
       if (!response.ok) {
         setError(`Failed to add product: ${response.statusText}`);
-        setLoading(false); // Set loading to false once the data is fetched
+        setLoading(false);
+        return; // Exit early if the response is not OK
       }
+
       const data = await response.json();
       console.log("Product and profit data added successfully:", data);
-      // update salesAnalytics , salesData
-      const { sale_data, sales_analytics } = data;
 
+      // Update salesData
+      const { sale_data, sales_analytics } = data;
       setSalesData((prev) => {
         console.log("NEWDATA", [...prev, sale_data]);
-        // state is being updated successfully.
         return [...prev, sale_data];
       });
-      // replaces existing object in the salesAnalyticsData state.
+
+      // Update salesAnalyticsData
       setSalesAnalyticsData((prevData) => {
         const updatedData = [...prevData];
         updatedData[0] = sales_analytics;
         return updatedData;
       });
+
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error adding product:", error);
       setError(error.message);
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
     }
   };
 
@@ -147,7 +162,7 @@ export const SalesProvider = ({ children }) => {
     }
   };
 
-  console.log("salesAnalytics Data", salesAnalyticsData)
+  console.log("salesAnalytics Data", salesAnalyticsData);
 
   const clearError = () => setError(null);
 
@@ -199,8 +214,16 @@ export const SalesProvider = ({ children }) => {
       setSalesData(updatedSalesData);
 
       // update salesAnalytics
-      const data = response.sales_analytics;
-      setSalesAnalyticsData(data);
+      const data = await response.json();
+      const { message, sales_analytics } = data;
+      console.log(sales_analytics);
+
+      setSalesAnalyticsData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[0] = data;
+        return updatedData;
+      });
+      setError("")
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error deleting sale:", error.message);
@@ -208,6 +231,59 @@ export const SalesProvider = ({ children }) => {
     }
   };
 
+  const updateSale = async (values, saleId) => {
+    console.log(values, saleId);
+    // values must be integer
+    const updatedValues = {
+      ...values,
+      quantitySold: parseInt(values.quantitySold, 10),
+      unit_sale_price: parseFloat(values.unitSalePrice),
+    };
+
+    try {
+      const response = await fetch(`/sale/${saleId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedValues),
+      });
+
+      if (!response.ok) {
+        setError(`Failed to update profit metrics: ${response.statusText}`);
+        setLoading(false); // Set loading to false once the data is fetched
+      }
+      const data = await response.json();
+      console.log("Profit metrics updated successfully:", data);
+
+      // update Sale Analytics and salesData state here
+      const { sale_data, sales_analytics } = data;
+
+      // copy sales array
+      const updatedProdDataIdx = salesData.findIndex(
+        (prod) => prod.id === sale_data.id
+      );
+      const updatedData = [...salesData];
+      updatedData.splice(updatedProdDataIdx, 1, sale_data);
+
+      // update the state with the new sales data
+      setSalesData(updatedData);
+
+      // update salesAnalytics
+      setSalesAnalyticsData((prevData) => {
+        const updatedData = [...prevData];
+        updatedData[0] = sales_analytics;
+        return updatedData;
+      });
+
+      setLoading(false); // Set loading to false once the data is fetched
+    } catch (error) {
+      console.error("Error updating sale:", error.message);
+      setError("Error occurred while updating the sale details.Please check the quantity sold.")
+      setLoading(false); // Set loading to false once the data is fetched
+    }
+    setError("")
+  };
 
   return (
     <SalesContext.Provider
@@ -220,6 +296,8 @@ export const SalesProvider = ({ children }) => {
         addProduct,
         addProductSale,
         deleteProductSale,
+        updateSale,
+        setError,
       }}
     >
       {loading ? (

@@ -6,7 +6,7 @@ from config import db, app, api, flask_bcrypt
 from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost, User_Product_Association
 from decimal import Decimal
-from helpers import update_profit_metrics, calculate_analytics
+from helpers import update_profit_metrics, calculate_analytics, calculate_sales_analytics
 
 # pw_hash = flask_bcrypt.generate_password_hash('hunter2')
 # flask_bcrypt.check_password_hash(pw_hash, 'hunter2')  # returns True
@@ -317,6 +317,9 @@ class UserProductSales(Resource):
             data = request.get_json()
 
             #create new product
+            # Backend Check: Add a check here to verify if a product with the same name  already exists for the user before adding a new product.
+            if Product.query.filter_by(description=data["description"]).first():
+                abort(400, "Product already exists")
             
             new_product = Product(description=data["description"])
 
@@ -416,7 +419,7 @@ class UserProductSales(Resource):
 
 # delete request handler here: deletes sale data and associated cost and profit.
     def delete(self, sale_id):
-        user_id = session.get("user_id")
+        user_id = session["user_id"]
 
         if not user_id:
             abort(401, "User is not authenticated.")
@@ -447,6 +450,7 @@ class UserProductSales(Resource):
             #calculate_analytics , pass user
             user_id = session["user_id"]
             user = User.query.filter_by(id=user_id).first()
+            calculate_sales_analytics(user.products)
             sales_analytics = calculate_analytics(user)
 
             return make_response({"message": "Sale, profit, and cost deleted successfully", "sales_analytics": sales_analytics}, 200)
@@ -465,7 +469,7 @@ api.add_resource(UserProductSales, '/user_sales', '/user_sales/<int:sale_id>')
 class UserProducts(Resource):
     # Creates new sale, cost, profit data for the selected product.
     def post(self, product_id):
-        user_id = session.get("user_id")
+        user_id = session["user_id"]
 
         if not user_id:
             abort(401, "User is not authenticated.")
@@ -477,6 +481,8 @@ class UserProducts(Resource):
                 abort(404, "Product not found")
 
             data = request.get_json()
+
+            # breakpoint()
 
             # Create sale row for the product
             new_sale = ProductSale(
@@ -579,6 +585,124 @@ class UserProducts(Resource):
 
 
 api.add_resource(UserProducts, '/user_products/<int:product_id>')
+
+class SaleByID(Resource):
+
+
+    def patch(self, sale_id):
+        """
+    Update the sale details and calculate the updated profit metrics, and sales revenue.
+
+    Args:
+        sale_id (int): The ID of the sale to be updated.
+
+    Returns:
+        Response: The response object containing the updated sale data and sales analytics.
+    """
+        user_id = session["user_id"]
+
+        if not user_id:
+            abort(401, "User is not authenticated.")
+
+        # find the sale by id
+        sale = ProductSale.query.filter_by(id=sale_id).first()
+
+        if not sale:
+            abort(404, "The sale does not exist.")
+
+        try:
+            data = request.get_json()
+
+            # updates sales price, quantity sold in sale object.
+            # check if quantity sold is not more than quantity purchased.
+            cost = sale.cost
+            if not sale.quantity_sold < cost.quantity_purchased:
+                abort(405, "The update not allowed. The quantity sold is greater than total purchased.")
+            
+            sale.quantity_sold = data["quantitySold"]
+            sale.unit_sale_price = data["unitSalePrice"]
+
+            db.session.commit()
+
+            profit = sale.profit
+            update_profit_metrics(profit)
+
+            product = Product.query.filter_by(id=sale.product_id).first()
+
+            # Prepare the sale data object
+            sale_data = {
+                "sale_id": sale.id,
+                "unit_sale_price": f"{sale.unit_sale_price:.2f}",
+                "quantity_sold": sale.quantity_sold,
+                "quantity_purchased": cost.quantity_purchased,
+                "sales_revenue": round(sale.unit_sale_price * sale.quantity_sold, 2),
+                "total_cost": round(cost.marketing_cost + cost.shipping_cost +
+                                    cost.packaging_cost + cost.unit_value * cost.quantity_purchased, 2),
+                "profit_id": profit.id,
+                "profit_amount": round(profit.profit_amount, 2),
+                "profit_margin": round(profit.margin, 2),
+                "cost_id": cost.id,
+                "sale_date": sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
+            }
+
+            # Initialize product data
+            product_data = {
+                "description": product.description,
+                "id": product.id,
+                "sales": [],
+                "total_sales_revenue": 0,
+                "total_profit_amount": 0,
+                "total_cost": 0
+            }
+
+            # Calculate updated totals and prepare sales data
+            for sale in product.sales:
+                product_data["total_sales_revenue"] += float(
+                    sale.unit_sale_price * sale.quantity_sold)
+                product_data["total_profit_amount"] += float(sale.profit_amount)
+
+                cost = sale.cost
+                if cost:
+                    product_data["total_cost"] += float(cost.total_cost)
+
+                profit = sale.profit
+                if profit:
+                    product_data["total_profit_amount"] += float(profit.profit_amount)
+
+                product_data["sales"].append({
+                    "cost_id": cost.id if cost else None,
+                    "profit_amount": round(profit.profit_amount, 2) if profit else None,
+                    "profit_id": profit.id if profit else None,
+                    "profit_margin": round(profit.margin, 2) if profit else None,
+                    "quantity_purchased": cost.quantity_purchased if cost else None,
+                    "quantity_sold": sale.quantity_sold,
+                    "sale_date": sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "unit_sale_price": f"{sale.unit_sale_price:.2f}",
+                })
+
+            # Fetch the user object
+            user = User.query.filter_by(id=user_id).first()
+            if not user:
+                abort(404, "User not found")
+
+            # Prepare the sales analytics data using the helper function
+            sales_analytics = calculate_analytics(user)
+
+            # Prepare the response object with both sale data and sales analytics
+            response_body = {
+                "sale_data": product_data,
+                "sales_analytics": sales_analytics
+            }
+
+            return make_response(response_body, 200)
+        
+        except Exception as e:
+            db.session.rollback()
+            abort(500, f"An error occurred: {str(e)}")
+
+
+api.add_resource(SaleByID, '/sale/<int:sale_id>')
+
 
 # this script runs the app
 if __name__ == '__main__':

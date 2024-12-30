@@ -29,7 +29,7 @@ function SaleAnalytics() {
           </p>
         </div>
         <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium">Total Profit</h3>
+          <h3 className="text-lg font-medium">{totalProfit < 0 ? "Total Loss" : "Total Profit"}</h3>
           <p className="text-2xl font-bold text-blue-600">
             {formatCurrency(totalProfit)}
           </p>
