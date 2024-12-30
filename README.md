@@ -4,7 +4,20 @@
 
 SaleSight is a full-stack web application designed to empower businesses by streamlining the management of sales and profit metrics. It features a Flask-based backend and leverages Flask-RESTful for API development.
 
-* Key Highlight: SaleSight provides users with clear insights into their sales and profit data, enabling data-driven decision-making. The Profit Center page is the hub for understanding your business's financial health.
+
+This project is a web application for managing and analyzing sales and profit data. It includes the following key features:
+
+1. **Product Management**: Users can add, edit, and view products and their associated sales data. This is handled in the ProductsPage component, which uses components like ProductForm, ProductsList, and ProductProfitTable.
+
+2. **Sales and Profit Analysis**: Users can view detailed analytics of their sales and profit data. This is handled in the AnalyticsPage component, which uses components like SaleAnalytics, CostAnalytics, and ProfitAnalytics.
+
+3. **User Authentication**: The application includes user authentication to ensure that only authorized users can access certain pages. This is managed using the AuthContext and components like ProtectedRoute.
+
+4. **Data Visualization**: The application uses charts to visualize sales and profit trends over time. This is implemented using the Recharts library in components like ProfitAnalytics.
+
+5. **Context API**: The application uses React's Context API to manage global state, such as sales data and user authentication status. This is seen in the SalesContext and AuthContext.
+
+Overall, the project provides a comprehensive solution for managing and analyzing sales and profit data, with a focus on user-friendly interfaces and data visualization.
 
 #### Profit Center Features:
 
