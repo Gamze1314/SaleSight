@@ -94,6 +94,10 @@ Formik
 Yup
 Tailwind CSS
 
+### Future Improvements
+
+In the next phase of the project, I will be including an admin role to control product entry and manage inventory more effectively. This admin functionality will include full CRUD (Create, Read, Update, Delete) operations, allowing the admin to add new products, update existing product details, delete products, and view all product entries. Additionally, I will enhance the system to manage cost details associated with each product, ensuring accurate tracking of expenses and profitability. This will involve creating new models and relationships to handle cost data, as well as updating existing models to integrate these new features seamlessly.
+
 
 Contributions are welcome! To contribute:
 Fork the repository.
