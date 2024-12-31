@@ -17,6 +17,10 @@ This project is a web application for managing and analyzing sales and profit da
 
 5. **Context API**: The application uses React's Context API to manage global state, such as sales data and user authentication status. This is seen in the SalesContext and AuthContext.
 
+6. **Financial Tracking**:
+
+The system calculates sales revenue and profit for each sale, helping users and administrators track financial performance.
+Cost details are managed to ensure accurate tracking of expenses and profitability.
 Overall, the project provides a comprehensive solution for managing and analyzing sales and profit data, with a focus on user-friendly interfaces and data visualization.
 
 #### Profit Center Features:
