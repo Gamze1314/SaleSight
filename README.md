@@ -78,9 +78,11 @@ User Authentication
 /logout : handles user logout.
 
 User Sale and Profit Data Management:
+/sales_analytics : returns user specific sales analytic data.
 '/user_sales' : handles GET, POST HTTP requests.
-'/user_sales/<int:profit_id>' : handles PATCH HTTP requests.
-'/product_sales/<int:product_id>' : handles POST, DELETE requests.
+'/user_sales/<int:sale_id>' : handles DELETE HTTP requests.
+'/user_products/<int:product_id>' : handles POST requests.
+'/sale/<int:sale_id>' : PATCH request handler for an individual sale (Resource SaleByID)
 
 ### Frontend Technologies Used
 
