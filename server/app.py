@@ -21,18 +21,13 @@ class CheckSession(Resource):
             if user_id:
                 user = User.query.filter_by(id=user_id).first()
                 if user:
-                    logger.info(f"User {user_id} authenticated successfully.")
                     return make_response(user.to_dict(), 200)
                 else:
-                    logger.warning(
-                        f"User {user_id} not found in the database.")
                     session.clear()  # Clears all session data
             else:
-                logger.warning("No user_id found in session.")
-            return abort(401, 'User is not authenticated.')
+                abort(401, 'User is not authenticated.')
         except Exception as e:
-            logger.error(f"Error during session check: {e}")
-            return abort(500, 'Internal server error.')
+                abort(500, 'Internal server error.')
 
 
 api.add_resource(CheckSession, '/check_session')
