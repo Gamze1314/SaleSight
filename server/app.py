@@ -35,7 +35,6 @@ api.add_resource(CheckSession, '/check_session')
 
 class SignUp(Resource):
     def post(self):
-        # request.get_json() => get signup info
         try:
             data = request.get_json()
             name = data['name']
@@ -80,8 +79,6 @@ class SignUp(Resource):
 api.add_resource(SignUp, '/signup')
 
 # Login Resource
-
-
 class Login(Resource):
     def post(self):
         try:
@@ -119,13 +116,16 @@ api.add_resource(Login, '/login')
 # Logout Resource
 class LogOut(Resource):
     def delete(self):
-        # breakpoint()
-        if 'user_id' in session:
-            session['user_id'] = None
-            session.clear()  # Clears all session data
-            return make_response({'message': 'User logged out successfully'}, 200)
-        else:
-            abort(400, "No user currently logged in")
+        try:
+            # Check if 'user_id' is in session
+            if 'user_id' in session:
+                user_id = session['user_id']
+                session.clear()  # Clears all session data
+                return make_response({'message': 'User logged out successfully'}, 200)
+            else:
+                abort(400, "No user currently logged in")
+        except Exception as e:
+            abort(500, "Internal server error")
 
 
 api.add_resource(LogOut, '/logout')
