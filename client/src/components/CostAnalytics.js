@@ -39,17 +39,21 @@ function CostAnalytics() {
         </p>
       )}
 
-      {/* Revenue vs Cost Chart */}
+      {/* Chart Display */}
       <div className="bg-white shadow rounded-lg p-6">
         <h4 className="text-lg font-medium mb-4">Revenue vs Cost</h4>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
+              {/* Grid lines */}
               <CartesianGrid strokeDasharray="3 3" />
+              {/* X-axis */}
               <XAxis dataKey="date" />
+              {/* Y-axis with currency formatting */}
               <YAxis tickFormatter={formatCurrency} />
               <Tooltip formatter={(value) => formatCurrency(value)} />
               <Legend />
+              {/* Bars for revenue and cost */}
               <Bar dataKey="revenue" fill="#4CAF50" name="Revenue" />
               <Bar dataKey="cost" fill="#FF5252" name="Cost" />
             </BarChart>
