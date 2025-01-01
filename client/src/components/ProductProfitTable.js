@@ -3,7 +3,7 @@ import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
 function ProductProfitTable({ onClose, selectedProduct }) {
-  const { deleteProductSale, updateSale, error, setError } = useContext(SalesContext);
+  const { deleteProductSale, updateSale, error } = useContext(SalesContext);
   const [editSaleId, setEditSaleId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [localData, setLocalData] = useState([]);
@@ -44,9 +44,10 @@ function ProductProfitTable({ onClose, selectedProduct }) {
     alert("Are you sure you want to delete this profit metric?")
     deleteProductSale(saleId);
       // Update local data after successful deletion
-      setLocalData((prevData) =>
-        prevData.filter((sale) => sale.saleId !== saleId)
-      );
+      setLocalData((prevData) => {
+        const updatedData = prevData.filter((sale) => sale.saleId !== saleId)
+      return updatedData
+  });
     
   };
 
@@ -143,7 +144,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                 </thead>
                 <tbody>
                   {localData.map((sale, index) => (
-                    <tr key={sale.saleId} className="border-b hover:bg-gray-50">
+                    <tr key={sale.saleId ? sale.saleId : index} className="border-b hover:bg-gray-50">
                       <td className="p-2">{index + 1}</td>
                       <td className="p-2">{sale.saleDate}</td>
                       <td className="p-2 text-right">

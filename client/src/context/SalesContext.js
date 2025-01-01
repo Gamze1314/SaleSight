@@ -9,17 +9,23 @@ export const SalesProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [salesAnalyticsData, setSalesAnalyticsData] = useState(null);
 
-  // Fetching sale analytics data on component mount
+  // Function to fetch sales analytics data
+  const fetchSalesAnalyticsData = async () => {
+    try {
+      const response = await fetch("/sales_analytics");
+      const data = await response.json();
+      setSalesAnalyticsData(Array.isArray(data) ? data : [data]);
+      setLoading(false); // Set loading to false once the data is fetched
+    } catch (error) {
+      setError(error);
+      setLoading(false); // Set loading to false in case of error
+    }
+  };
+
+  // Fetching sale analytics data on component mount, and dependency to salesData
   useEffect(() => {
-    fetch("/sales_analytics")
-      .then((response) => response.json())
-      .then((data) => {
-        setSalesAnalyticsData(data);
-        setLoading(false); // Set loading to false once the data is fetched
-      })
-      .catch((error) => setError(error));
-    setLoading(false); // Set loading to false once the data is fetched
-  }, []);
+    fetchSalesAnalyticsData();
+  }, [salesData]);
 
   // Fetch initial sales data
   useEffect(() => {
@@ -147,7 +153,7 @@ export const SalesProvider = ({ children }) => {
       const updatedData = [...salesData];
       updatedData.splice(updatedProdDataIdx, 1, sale_data);
 
-      setSalesData(updatedData); // updates the sales analytics and sales array for the product.
+      setSalesData(updatedData);
       console.log(salesData);
       // replaces existing object in the salesAnalyticsData state.
       setSalesAnalyticsData((prevData) => {
@@ -156,8 +162,10 @@ export const SalesProvider = ({ children }) => {
         return updatedData;
       });
       setLoading(false); // Set loading to false once the data is fetched
+      setError("")
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
+      setError(error)
       setLoading(false); // Set loading to false once the data is fetched
     }
   };
@@ -166,7 +174,7 @@ export const SalesProvider = ({ children }) => {
 
   const clearError = () => setError(null);
 
-  // API DELETE request for product deletion
+  // API DELETE request for Product Sale deletion
   const deleteProductSale = async (saleId) => {
     try {
       const response = await fetch(`/user_sales/${saleId}`, {
@@ -178,58 +186,33 @@ export const SalesProvider = ({ children }) => {
       }
       console.log("Sale Data deleted successfully:", saleId);
       setLoading(false); // Set loading to false once the data is fetched
-      //  update state, remove sale data from product.sales array
-      // Step 1: Remove the deleted sale from the salesData
-      const updatedSalesData = salesData.map((product) => {
-        // Filter out the sale with the matching ID for the product
-        const updatedSales = product.sales.filter(
-          (sale) => sale.sale_id !== saleId
-        );
 
-        // Step 2: Recalculate totals for this product
-        const totalSalesRevenue = updatedSales.reduce(
-          (sum, sale) => sum + (sale.sales_revenue || 0),
-          0
-        );
-        const totalProfitAmount = updatedSales.reduce(
-          (sum, sale) => sum + (sale.profit_amount || 0),
-          0
-        );
-        const totalCost = updatedSales.reduce(
-          (sum, sale) => sum + (sale.total_cost || 0),
-          0
-        );
-
-        // Return the updated product with updated sales and totals
-        return {
-          ...product,
-          sales: updatedSales,
-          total_sales_revenue: totalSalesRevenue,
-          total_profit_amount: totalProfitAmount,
-          total_cost: totalCost,
-        };
-      });
-
-      // Step 3: Update the state with the updatedSalesData
-      setSalesData(updatedSalesData);
+      // get updated product data and sales analytics data from the backend
 
       // update salesAnalytics
       const data = await response.json();
-      const { message, sales_analytics } = data;
-      console.log(sales_analytics);
+      const { sale_data, sales_analytics } = data;
+      console.log("deletion -updated sales data:",  sale_data)
+      console.log("deletion -updated analytics data:", sales_analytics);
 
+      
+
+      fetchSalesAnalyticsData();
       setSalesAnalyticsData((prevData) => {
         const updatedData = [...prevData];
         updatedData[0] = data;
         return updatedData;
       });
-      setError("")
+
+      setError("");
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error deleting sale:", error.message);
       setLoading(false); // Set loading to false once the data is fetched
     }
   };
+
+  console.log(salesData)
 
   const updateSale = async (values, saleId) => {
     console.log(values, saleId);
@@ -279,10 +262,12 @@ export const SalesProvider = ({ children }) => {
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error updating sale:", error.message);
-      setError("Error occurred while updating the sale details.Please check the quantity sold.")
+      setError(
+        "Error occurred while updating the sale details.Please check the quantity sold."
+      );
       setLoading(false); // Set loading to false once the data is fetched
     }
-    setError("")
+    setError("");
   };
 
   return (

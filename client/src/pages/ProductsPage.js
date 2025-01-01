@@ -83,6 +83,7 @@ function ProductsPage() {
         )} */}
         <ProductsList
           onOptionSelect={handleOptionSelect} //// Handle product and option selection
+          selectedProduct={selectedProduct}
         />
       </div>
     </div>

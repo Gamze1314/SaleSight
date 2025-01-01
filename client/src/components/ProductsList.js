@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import Product from "./Product";
 import { SalesContext } from "../context/SalesContext";
 
-function ProductsList({ onOptionSelect }) {
+function ProductsList({ onOptionSelect, selectedProduct }) {
   const { loading, salesData } = useContext(SalesContext);
 
   // Loading state handling

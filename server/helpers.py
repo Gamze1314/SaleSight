@@ -4,6 +4,7 @@ from decimal import Decimal, InvalidOperation
 
 def total_revenue_for_sale(sale):
     """
+    Private method;
     Calculate total revenue for a single sale.
 
     Parameters:
@@ -31,11 +32,12 @@ def total_revenue_for_sale(sale):
 
 def calculate_sale_profit_amount(sale):
     """
+    Private method;
     Calculate the profit amount for a specific sale.
-    
+
     Args:
         sale (ProductSale): The sale instance to calculate profit for
-    
+
     Returns:
         Decimal: The net profit amount for the sale
     """
@@ -116,6 +118,7 @@ def calculate_sales_analytics(products):
 
 
 def calculate_analytics(user):
+    # Private method;
     # Get sales analytics data from the helper function
     total_sales_revenue, total_profit_amount, total_quantity_sold, total_cost = calculate_sales_analytics(
         user.products)
@@ -138,9 +141,3 @@ def calculate_analytics(user):
     }
 
     return sales_analytics
-
-
-
-
-
-

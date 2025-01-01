@@ -227,6 +227,7 @@ class UserProductSales(Resource):
 #data required;
 # unit_sale_price
 # quantity_sold
+#quantity purchased
 # profit_amount
 # profit_margin
 # quantity_purchased
@@ -248,6 +249,7 @@ class UserProductSales(Resource):
                 total_profit_amount = 0
                 total_cost = 0
                 total_quantity_sold = 0
+                total_quantity_purchased = 0  # Initialize total_quantity_purchased
                 sales_data = []
 
                 # Process sales for the product
@@ -260,8 +262,7 @@ class UserProductSales(Resource):
                     profit = sale.profit
                     if profit:
                         sale_dict["profit_id"] = profit.id  # Add profit_id
-                        sale_dict["profit_amount"] = float(
-                            profit.profit_amount)
+                        sale_dict["profit_amount"] = float(profit.profit_amount)
                         sale_dict["profit_margin"] = float(profit.margin)
                         total_profit_amount += float(profit.profit_amount)
                     else:
@@ -276,17 +277,19 @@ class UserProductSales(Resource):
                         sale_dict["total_cost"] = float(cost.total_cost)
                         sale_dict["quantity_purchased"] = int(cost.quantity_purchased)
                         total_cost += float(cost.total_cost)
+                        # Add quantity purchased
+                        total_quantity_purchased += int(cost.quantity_purchased)
                     else:
                         sale_dict["cost_id"] = None
                         sale_dict["total_cost"] = 0
                         sale_dict["quantity_purchased"] = 0
 
                     # Calculate sales revenue
-                    sale_dict["sales_revenue"] = float(sale.unit_sale_price) * int(sale.quantity_sold)
+                    sale_dict["sales_revenue"] = float(
+                        sale.unit_sale_price) * int(sale.quantity_sold)
                     total_sales_revenue += sale_dict["sales_revenue"]
 
-                    #accumulate total quantity sold
-                    # Add quantity sold
+                    # Accumulate total quantity sold
                     total_quantity_sold += int(sale.quantity_sold)
 
                     # Add sale to sales data
@@ -297,6 +300,8 @@ class UserProductSales(Resource):
                 product_data["total_sales_revenue"] = total_sales_revenue
                 product_data["total_profit_amount"] = total_profit_amount
                 product_data["total_cost"] = total_cost
+                product_data["total_quantity_sold"] = total_quantity_sold
+                product_data["total_quantity_purchased"] = total_quantity_purchased
 
                 response_body.append(product_data)
 
@@ -389,6 +394,10 @@ class UserProductSales(Resource):
             product_data = new_product.to_dict(only=("id", "description"))
             product_data["sales"] = [sale_data]
             product_data["total_sales_revenue"] = sale_data["quantity_sold"] * sale_data["unit_sale_price"]
+            # accumulate total quantity sold
+            # Add quantity sold
+            product_data["total_quantity_sold"] = int(sale_data["quantity_sold"])
+            product_data["total_quantity_purchased"] = sale_data["quantity_purchased"]
             product_data["total_profit_amount"] = sale_data["profit_amount"] 
             product_data["total_cost"] = sale_data["total_cost"]
 
@@ -429,15 +438,18 @@ class UserProductSales(Resource):
             if not sale:
                 abort(404, "Sale data does not exist.")
 
-            # Fetch associated profit and cost for the sale
-            profit = sale.profit  # Assuming Sale has a relationship to Profit
-            cost = sale.cost  # Assuming Sale has a relationship to Cost
+            # Re-attach the sale object to the session (merge it)
+            # sale = db.session.merge(sale)
 
-            # Delete related cost if it exists
+            # Now the sale object is attached to the session, and you can access the 'product' relationship
+            product = sale.product  # This should now work without DetachedInstanceError
+
+            # Delete related cost and profit if they exist
+            profit = sale.profit
+            cost = sale.cost
+
             if cost:
                 db.session.delete(cost)
-
-            # Delete related profit if it exists
             if profit:
                 db.session.delete(profit)
 
@@ -445,17 +457,43 @@ class UserProductSales(Resource):
             db.session.delete(sale)
             db.session.commit()
 
-            #calculate_analytics , pass user
-            user_id = session["user_id"]
+            # Calculate analytics
             user = User.query.filter_by(id=user_id).first()
-            calculate_sales_analytics(user.products)
             sales_analytics = calculate_analytics(user)
 
-            return make_response({"message": "Sale, profit, and cost deleted successfully", "sales_analytics": sales_analytics}, 200)
+            # Recalculate totals and sales data
+            total_sales_revenue = 0
+            total_profit_amount = 0
+            total_cost = 0
+            total_quantity_sold = 0
+            total_quantity_purchased = 0
+            sales_data = []
+
+            # Iterate over the sales data associated with the product
+            for sale in product.sales:
+                sale_dict = sale.to_dict()
+                total_sales_revenue += float(sale_dict["sales_revenue"])
+                total_profit_amount += float(sale_dict["profit_amount"])
+                total_cost += sale_dict["total_cost"]
+                total_quantity_sold += int(sale_dict["quantity_sold"])
+                total_quantity_purchased += int(sale_dict["quantity_purchased"])
+                sales_data.append(sale_dict)
+
+            # Prepare the updated product data
+            product_data = product.to_dict(only=("id", "description"))
+            product_data["sales"] = sales_data
+            product_data["total_sales_revenue"] = total_sales_revenue
+            product_data["total_quantity_sold"] = total_quantity_sold
+            product_data["total_quantity_purchased"] = total_quantity_purchased
+            product_data["total_profit_amount"] = total_profit_amount
+            product_data["total_cost"] = total_cost
+
+            return make_response({"sale_data": product_data, "sales_analytics": sales_analytics}, 200)
 
         except Exception as e:
             db.session.rollback()  # Rollback in case of an error
             abort(500, f"An error occurred: {str(e)}")
+
 
 
 
@@ -540,15 +578,28 @@ class UserProducts(Resource):
             updated_total_sales_revenue = 0
             updated_profit_amount = 0
             updated_total_cost = 0
+            #add quantity sold, purchased
+            updated_total_quantity_sold = 0
+            #add total_quantity_purchased
+            updated_total_quantity_purchased = 0
+
+            #loop through all sales of the product, calculate total sales revenue, total profit amount, total cost and total quantity sold
+            #update product_data with these values
+            #calculate total_quantity_sold
 
             for sale in product.sales:
                 updated_total_sales_revenue += float(sale.unit_sale_price * sale.quantity_sold)
                 updated_profit_amount += float(sale.profit_amount)
+                updated_total_quantity_sold += int(sale.quantity_sold)
+                updated_total_quantity_purchased += int(sale.quantity_purchased)
 
                 cost = sale.cost 
 
                 if cost:
+                    #QUANTITY_PURCHASED KEY
                     updated_total_cost += float(cost.total_cost)
+                    updated_quantity_purchased += int(cost.quantity_purchased)
+
 
                 profit = sale.profit
 
@@ -556,9 +607,11 @@ class UserProducts(Resource):
                     updated_profit_amount += float(profit.profit_amount)
 
 
+            product_data["sales"] = sale_data
             product_data["total_sales_revenue"] = updated_total_sales_revenue
             product_data["total_profit_amount"] = updated_profit_amount
             product_data["total_cost"] = updated_total_cost
+            product_date["total_quantity_sold"] = updated_total_quantity_sold
 
             # Fetch the user object
             user = User.query.filter_by(id=user_id).first()
@@ -648,6 +701,8 @@ class SaleByID(Resource):
                 "sales": [],
                 "total_sales_revenue": 0,
                 "total_profit_amount": 0,
+                "total_quantity_sold": 0,
+                "total_quantity_purchased": 0,
                 "total_cost": 0
             }
 
@@ -656,10 +711,13 @@ class SaleByID(Resource):
                 product_data["total_sales_revenue"] += float(
                     sale.unit_sale_price * sale.quantity_sold)
                 product_data["total_profit_amount"] += float(sale.profit_amount)
+                product_data["total_quantity_sold"] += sale.quantity_sold
+                product_data["total_quantity_purchased"] += sale.quantity_purchased
 
                 cost = sale.cost
                 if cost:
                     product_data["total_cost"] += float(cost.total_cost)
+                    product_data["total_quantity_purchased"] += cost.quantity_purchased
 
                 profit = sale.profit
                 if profit:
