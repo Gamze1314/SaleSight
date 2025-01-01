@@ -15,15 +15,24 @@ from helpers import update_profit_metrics, calculate_analytics, calculate_sales_
 
 class CheckSession(Resource):
     def get(self):
-        user_id = session['user_id']  # Safely get user_id from session
-        if user_id:
-            user = User.query.filter_by(id=user_id).first()
-            if user:
-                return make_response(user.to_dict(), 200)
+        try:
+            # Safely get user_id from session
+            user_id = session.get('user_id')
+            if user_id:
+                user = User.query.filter_by(id=user_id).first()
+                if user:
+                    logger.info(f"User {user_id} authenticated successfully.")
+                    return make_response(user.to_dict(), 200)
+                else:
+                    logger.warning(
+                        f"User {user_id} not found in the database.")
+                    session.clear()  # Clears all session data
             else:
-                session['user_id'] = None
-                session.clear()  # Clears all session data
-        return abort(401, 'User is not authenticated.')
+                logger.warning("No user_id found in session.")
+            return abort(401, 'User is not authenticated.')
+        except Exception as e:
+            logger.error(f"Error during session check: {e}")
+            return abort(500, 'Internal server error.')
 
 
 api.add_resource(CheckSession, '/check_session')
