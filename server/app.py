@@ -213,6 +213,7 @@ api.add_resource(SalesAnalytics, '/sales_analytics')
 #Handles GET and DELETE requests.
 class UserProductSales(Resource):
     def get(self):
+        # returns a response for the user sales and associated cost and profit. If there are no sales associated with the user, return 0 values for sales revenue, total cost, and profit amount.
         user_id = session["user_id"]
 
         if not user_id:
@@ -223,8 +224,7 @@ class UserProductSales(Resource):
 
         if not user:
             abort(404, "User not found")
-# prepare a response for user product sales and associated cost and profit. If there are no sales associated with the user, return 0 values for sales revenue, total cost, and profit amount.
-
+#data required;
 # unit_sale_price
 # quantity_sold
 # profit_amount
@@ -235,14 +235,11 @@ class UserProductSales(Resource):
 
         try:
             response_body = []
-
             user_products = user.products
 
             for product in user_products:
-
                 # Prepare product data
                 product_data = product.to_dict(only=("id", "description"))
-
                 # Fetch sales related to the product
                 product_sales = [sale for sale in product.sales]
 
@@ -319,7 +316,6 @@ class UserProductSales(Resource):
 
         try:
             data = request.get_json()
-
             #create new product
             # Backend Check: Add a check here to verify if a product with the same name  already exists for the user before adding a new product.
             if Product.query.filter_by(description=data["description"]).first():
@@ -335,11 +331,9 @@ class UserProductSales(Resource):
             association = User_Product_Association(
                 user_id=user.id, product_id=new_product.id)
             
-            # breakpoint()
             
             db.session.add(association)
             db.session.commit()
-
 
             # Create sale row for the product
             new_sale = ProductSale(
@@ -592,7 +586,6 @@ api.add_resource(UserProducts, '/user_products/<int:product_id>')
 
 class SaleByID(Resource):
 
-
     def patch(self, sale_id):
         """
     Update the sale details and calculate the updated profit metrics, and sales revenue.
@@ -617,12 +610,11 @@ class SaleByID(Resource):
         try:
             data = request.get_json()
 
-            # updates sales price, quantity sold in sale object.
             # check if quantity sold is not more than quantity purchased.
             cost = sale.cost
             if not sale.quantity_sold < cost.quantity_purchased:
                 abort(405, "The update not allowed. The quantity sold is greater than total purchased.")
-            
+            #updates the fields.
             sale.quantity_sold = data["quantitySold"]
             sale.unit_sale_price = data["unitSalePrice"]
 
@@ -689,7 +681,7 @@ class SaleByID(Resource):
             if not user:
                 abort(404, "User not found")
 
-            # Prepare the sales analytics data using the helper function
+            # the sales analytics data calculated with the helper function
             sales_analytics = calculate_analytics(user)
 
             # Prepare the response object with both sale data and sales analytics
