@@ -9,7 +9,7 @@ const ValidationSchema = Yup.object().shape({
   // format description initial upper rest is lower. stringFormatter
   description: Yup.string()
     .required("Description is required")
-    .transform((value) => stringFormatter(value)),
+    .transform((value) => stringFormatter(value)).min(3),
   unit_value: Yup.number().required("Unit value is required"),
   quantity: Yup.number().required("Quantity Sold is required").min(1),
   marketing_cost: Yup.number().required("Marketing cost is required"),
@@ -47,7 +47,7 @@ const ProductForm = ({
   // If the product is found, get the product description; otherwise, default to "Unknown Product"
   const productDescription = product? product.description : "Unknown Product";
 
- const quantityPurchased = product? product.total_quantity_purchased : 0;
+//  const quantityPurchased = product? product.total_quantity_purchased : 0;
 
   //if selectedOption is "edit_metrics" => user will be able to see product form w product description initialized in the field.
 
@@ -62,7 +62,7 @@ const ProductForm = ({
             shipping_cost: "",
             packaging_cost: "",
             unit_sale_price: "",
-            quantity_purchased: quantityPurchased,
+            quantity_purchased: "",
           }
         : {
             description: "",

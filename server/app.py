@@ -147,8 +147,6 @@ class SalesAnalytics(Resource):
 
 
         try:
-            # Prepare response for total profits, sales revenue, and costs
-            response_body = []
 
             # Initialize overall totals
             total_sales_revenue = 0
@@ -192,13 +190,13 @@ class SalesAnalytics(Resource):
                 average_profit_margin = 0
 
             # Prepare the response object
-            response_body.append({
+            response_body = {
                 "total_sales_revenue": total_sales_revenue,
                 "total_profit_amount": total_profit_amount,
                 "total_cost": total_cost,
                 "total_quantity_sold": total_quantity_sold,
                 "average_profit_margin": average_profit_margin
-            })
+            }
 
             # Return the response with combined totals
             return make_response(response_body, 200)
@@ -393,7 +391,7 @@ class UserProductSales(Resource):
             # returns new product data object and new sale created in an array.
             product_data = new_product.to_dict(only=("id", "description"))
             product_data["sales"] = [sale_data]
-            product_data["total_sales_revenue"] = sale_data["quantity_sold"] * sale_data["unit_sale_price"]
+            product_data["total_sales_revenue"] = float(sale_data["quantity_sold"]) * float(sale_data["unit_sale_price"])
             # accumulate total quantity sold
             # Add quantity sold
             product_data["total_quantity_sold"] = int(sale_data["quantity_sold"])
@@ -474,10 +472,24 @@ class UserProductSales(Resource):
                 sale_dict = sale.to_dict()
                 total_sales_revenue += float(sale_dict["sales_revenue"])
                 total_profit_amount += float(sale_dict["profit_amount"])
-                total_cost += sale_dict["total_cost"]
+                total_cost += float(sale.cost.total_cost)
                 total_quantity_sold += int(sale_dict["quantity_sold"])
-                total_quantity_purchased += int(sale_dict["quantity_purchased"])
-                sales_data.append(sale_dict)
+                total_quantity_purchased += int(sale.cost.quantity_purchased)
+                
+
+                sales_data.append({
+                    "sale_id": sale.id,
+                    "sales_revenue": sale.sales_revenue,
+                    "cost_id": sale.cost.id if sale.cost else None,
+                    "profit_amount": round(sale.profit.profit_amount, 2) if sale.profit else None,
+                    "profit_id": sale.profit.id if sale.profit else None,
+                    "profit_margin": round(sale.profit.margin, 2) if sale.profit else None,
+                    "quantity_purchased": sale.cost.quantity_purchased if sale.cost else None,
+                    "quantity_sold": sale.quantity_sold,
+                    "sale_date": sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    "unit_sale_price": f"{sale.unit_sale_price:.2f}",
+                })
+
 
             # Prepare the updated product data
             product_data = product.to_dict(only=("id", "description"))
@@ -554,25 +566,9 @@ class UserProducts(Resource):
             # Update profit metrics
             update_profit_metrics(new_profit)
 
-            # Prepare the sale data object
-            sale_data = {
-                "sale_id": new_sale.id,
-                "unit_sale_price": f"{new_sale.unit_sale_price:.2f}",
-                "quantity_sold": new_sale.quantity_sold,
-                "quantity_purchased": new_cost.quantity_purchased,
-                "sales_revenue": round(new_sale.unit_sale_price * new_sale.quantity_sold, 2),
-                "total_cost": round(new_cost.marketing_cost + new_cost.shipping_cost +
-                                    new_cost.packaging_cost + new_cost.unit_value * new_cost.quantity_purchased, 2),
-                "profit_id": new_profit.id,
-                "profit_amount": round(new_profit.profit_amount, 2),
-                "profit_margin": round(new_profit.margin, 2),
-                "cost_id": new_cost.id,
-                "sale_date": new_sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
-            }
-
             product_data = product.to_dict(only=("id","description"))
             # product sales array update here.(calculates total sales revenues, ttl cost, and ttl profit for a product), adds keys to product_data
-            product_data["sales"] = [sale.to_dict() for sale in product.sales]
+            product_data["sales"] = []
             #get all sales_revenues from sale objects and find the total(updated)
 
             updated_total_sales_revenue = 0
@@ -584,21 +580,18 @@ class UserProducts(Resource):
             updated_total_quantity_purchased = 0
 
             #loop through all sales of the product, calculate total sales revenue, total profit amount, total cost and total quantity sold
-            #update product_data with these values
-            #calculate total_quantity_sold
 
             for sale in product.sales:
                 updated_total_sales_revenue += float(sale.unit_sale_price * sale.quantity_sold)
                 updated_profit_amount += float(sale.profit_amount)
                 updated_total_quantity_sold += int(sale.quantity_sold)
-                updated_total_quantity_purchased += int(sale.quantity_purchased)
 
                 cost = sale.cost 
 
                 if cost:
                     #QUANTITY_PURCHASED KEY
                     updated_total_cost += float(cost.total_cost)
-                    updated_quantity_purchased += int(cost.quantity_purchased)
+                    updated_total_quantity_purchased += int(cost.quantity_purchased)
 
 
                 profit = sale.profit
@@ -606,12 +599,30 @@ class UserProducts(Resource):
                 if profit:
                     updated_profit_amount += float(profit.profit_amount)
 
+                # Prepare the sale data object
+                sale_data = {
+                    "sale_id": sale.id,
+                    "unit_sale_price": f"{sale.unit_sale_price:.2f}",
+                    "quantity_sold": sale.quantity_sold,
+                    "quantity_purchased": cost.quantity_purchased,
+                    "sales_revenue": round(sale.unit_sale_price * sale.quantity_sold, 2),
+                    "total_cost": round(cost.marketing_cost + cost.shipping_cost +
+                                        cost.packaging_cost + cost.unit_value * cost.quantity_purchased, 2),
+                    "profit_id": profit.id,
+                    "profit_amount": round(profit.profit_amount, 2),
+                    "profit_margin": round(profit.margin, 2),
+                    "cost_id": cost.id,
+                    "sale_date": sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
+                }
 
-            product_data["sales"] = sale_data
+                
+                product_data["sales"].append(sale_data)
+
             product_data["total_sales_revenue"] = updated_total_sales_revenue
             product_data["total_profit_amount"] = updated_profit_amount
             product_data["total_cost"] = updated_total_cost
-            product_date["total_quantity_sold"] = updated_total_quantity_sold
+            product_data["total_quantity_sold"] = updated_total_quantity_sold
+            product_data["total_quantity_purchased"] = updated_total_quantity_purchased
 
             # Fetch the user object
             user = User.query.filter_by(id=user_id).first()
@@ -662,11 +673,13 @@ class SaleByID(Resource):
 
         try:
             data = request.get_json()
-
+            product = Product.query.filter_by(id=sale.product_id).first()
             # check if quantity sold is not more than quantity purchased.
             cost = sale.cost
-            if not sale.quantity_sold < cost.quantity_purchased:
-                abort(405, "The update not allowed. The quantity sold is greater than total purchased.")
+            total_quantity_purchased = sum(sale.cost.quantity_purchased for sale in product.sales)
+
+            if not data["quantitySold"] <= total_quantity_purchased:
+                abort(400, "The update not allowed. The quantity sold is greater than total purchased.")
             #updates the fields.
             sale.quantity_sold = data["quantitySold"]
             sale.unit_sale_price = data["unitSalePrice"]
@@ -676,23 +689,7 @@ class SaleByID(Resource):
             profit = sale.profit
             update_profit_metrics(profit)
 
-            product = Product.query.filter_by(id=sale.product_id).first()
 
-            # Prepare the sale data object
-            sale_data = {
-                "sale_id": sale.id,
-                "unit_sale_price": f"{sale.unit_sale_price:.2f}",
-                "quantity_sold": sale.quantity_sold,
-                "quantity_purchased": cost.quantity_purchased,
-                "sales_revenue": round(sale.unit_sale_price * sale.quantity_sold, 2),
-                "total_cost": round(cost.marketing_cost + cost.shipping_cost +
-                                    cost.packaging_cost + cost.unit_value * cost.quantity_purchased, 2),
-                "profit_id": profit.id,
-                "profit_amount": round(profit.profit_amount, 2),
-                "profit_margin": round(profit.margin, 2),
-                "cost_id": cost.id,
-                "sale_date": sale.sale_date.strftime("%Y-%m-%d %H:%M:%S"),
-            }
 
             # Initialize product data
             product_data = {
@@ -712,18 +709,20 @@ class SaleByID(Resource):
                     sale.unit_sale_price * sale.quantity_sold)
                 product_data["total_profit_amount"] += float(sale.profit_amount)
                 product_data["total_quantity_sold"] += sale.quantity_sold
-                product_data["total_quantity_purchased"] += sale.quantity_purchased
+                product_data["total_quantity_purchased"] += sale.cost.quantity_purchased
 
                 cost = sale.cost
                 if cost:
                     product_data["total_cost"] += float(cost.total_cost)
-                    product_data["total_quantity_purchased"] += cost.quantity_purchased
 
                 profit = sale.profit
                 if profit:
                     product_data["total_profit_amount"] += float(profit.profit_amount)
 
                 product_data["sales"].append({
+                    "sale_id": sale.id,
+                    "sales_revenue": sale.sales_revenue,
+                    "total_cost": sale.cost.total_cost,
                     "cost_id": cost.id if cost else None,
                     "profit_amount": round(profit.profit_amount, 2) if profit else None,
                     "profit_id": profit.id if profit else None,

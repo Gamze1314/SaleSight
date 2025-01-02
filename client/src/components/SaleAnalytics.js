@@ -5,11 +5,10 @@ import { formatCurrency } from "../utils";
 function SaleAnalytics() {
   const { salesAnalyticsData, error } = useContext(SalesContext);
 
-  const totals = salesAnalyticsData[0] || 0;
-  const totalRevenue = totals.total_sales_revenue || 0;
-  const totalCost = totals.total_cost || 0;
-  const totalProfit = totals.total_profit_amount || 0;
-  const totalQuantity = totals.total_quantity_sold || 0;
+  const totalRevenue = salesAnalyticsData?.total_sales_revenue || 0;
+  const totalCost = salesAnalyticsData?.total_cost || 0;
+  const totalProfit = salesAnalyticsData?.total_profit_amount || 0;
+  const totalQuantity = salesAnalyticsData?.total_quantity_sold || 0;
 
   return (
     <div className="space-y-6 p-4">

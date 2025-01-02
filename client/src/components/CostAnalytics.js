@@ -16,11 +16,17 @@ function CostAnalytics() {
   const { salesData, salesAnalyticsData, error } = useContext(SalesContext);
 
   // Check if data is available and transform for the chart
-  const chartData = salesAnalyticsData.map((item) => ({
-    date: item.date, // Ensure there's a date key
-    revenue: item.total_sales_revenue || 0, // Replace with actual revenue data key
-    cost: item.total_cost || 0, // Replace with actual cost data key
-  }));
+  // const chartData = salesAnalyticsData.map((item) => ({
+  //   date: item.date, // Ensure there's a date key
+  //   revenue: item.total_sales_revenue || 0, // Replace with actual revenue data key
+  //   cost: item.total_cost || 0, // Replace with actual cost data key
+  // }));
+
+  const chartData = [{
+    date: salesAnalyticsData.date,
+    revenue: salesAnalyticsData.total_sales_revenue,
+    cost: salesAnalyticsData.total_cost || 0,
+  }]
 
   return (
     <div className="space-y-6 p-4">

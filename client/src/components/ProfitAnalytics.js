@@ -24,14 +24,15 @@ function ProfitAnalytics() {
   const firstRecord = salesData || [];
 
   // Format data for Profit Trend chart
-  const chartData = salesAnalyticsData.map((sale) => ({
-    sale_date: new Date().toLocaleDateString(),
-    profit: sale.total_profit_amount, // Assuming you have profit amount
-    margin: sale.average_profit_margin, // Assuming margin is available
-    average_profit_margin: sale.average_profit_margin, // Adding the average profit margin to chart data
-  }));
+  const chartData = [
+    {
+      sale_date: new Date().toLocaleDateString(),
+      profit: salesAnalyticsData.total_profit_amount,
+      margin: salesAnalyticsData.average_profit_margin, 
+      average_profit_margin: salesAnalyticsData.average_profit_margin,
+    },
+  ];
 
-  console.log(chartData);
 
   return (
     <div className="space-y-6 p-4">

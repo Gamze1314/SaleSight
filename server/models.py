@@ -258,7 +258,7 @@ class ProductSale(db.Model, SerializerMixin):
 class Cost(db.Model, SerializerMixin):
     __tablename__ = 'costs'
 
-    serialize_rules = ('-sale.costs', 'total_cost')
+    serialize_rules = ('-sale.cost', 'total_cost')
 
     id = db.Column(db.Integer, primary_key=True)
     quantity_purchased = db.Column(db.Integer, nullable=False)
@@ -341,7 +341,7 @@ class Cost(db.Model, SerializerMixin):
 class Profit(db.Model, SerializerMixin):
     __tablename__ = 'profits'
 
-    serialize_rules = ('-sale.profits',)
+    serialize_rules = ('-sale.profit',)
 
     id = db.Column(db.Integer, primary_key=True)
     profit_amount = db.Column(db.Numeric(
@@ -388,4 +388,4 @@ class Profit(db.Model, SerializerMixin):
         return value
 
     def __repr__(self):
-        return f'Profit {self.id}, {self.profit_amount}, {self.margin}, {self.product_id}, {self.user_id}, {self.created_at}, {self.updated_at}'
+        return f'Profit {self.id}, {self.profit_amount}, {self.sale_id}, {self.margin}, {self.created_at}, {self.updated_at}'

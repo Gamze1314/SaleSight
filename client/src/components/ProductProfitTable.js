@@ -3,18 +3,21 @@ import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
 function ProductProfitTable({ onClose, selectedProduct }) {
-  const { deleteProductSale, updateSale, error } = useContext(SalesContext);
+  const { deleteProductSale, updateSale, error, salesData } = useContext(SalesContext);
   const [editSaleId, setEditSaleId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [localData, setLocalData] = useState([]);
 
+
+  const prodData = salesData.find(prod => prod.id === selectedProduct.id)
+
   // Process and set initial data
   useEffect(() => {
-    if (selectedProduct?.sales) {
-      const processedSales = selectedProduct.sales?.map((sale) => {
+    if (prodData?.sales) {
+      const processedSales = prodData.sales.map((sale) => {
         const salesRevenue = parseFloat(sale.sales_revenue) || 0;
         const quantitySold = parseInt(sale.quantity_sold) || 0;
-        const totalCost = selectedProduct?.total_cost || 0;
+        const totalCost = parseFloat(sale.total_cost || 0);
         const profitAmount = salesRevenue - totalCost || 0;
 
         return {
@@ -25,8 +28,8 @@ function ProductProfitTable({ onClose, selectedProduct }) {
           totalCost: parseFloat(totalCost).toFixed(2) || 0,
           profit: parseFloat(profitAmount).toFixed(2) || 0,
           saleId: sale.sale_id,
-          productId: selectedProduct.id,
-          productDescription: selectedProduct.description,
+          productId: prodData.id,
+          productDescription: prodData.description,
           quantityPurchased: sale.quantity_purchased,
         };
       });
@@ -62,10 +65,25 @@ function ProductProfitTable({ onClose, selectedProduct }) {
   };
 
   const handleSave = async (saleId) => {
-    if (editValues.quantityPurchased > editValues.quantitySold) {
-      alert("Quantity sold cannot be greater than quantity purchased.");
-      return;
-    }
+    // 10 , 15
+    const sale = localData.find((sale) => sale.saleId === saleId);
+
+  const updatedTotalSold =
+    selectedProduct.total_quantity_sold +
+    (Number(editValues.quantitySold) - sale.quantity_sold);
+        console.log(
+          selectedProduct.total_quantity_purchased,
+          selectedProduct.total_quantity_sold,
+          Number(editValues.quantitySold)
+        );
+  if (
+    selectedProduct.total_quantity_purchased <
+      Number(editValues.quantitySold) ||
+    selectedProduct.total_quantity_purchased < updatedTotalSold
+  ) {
+    alert("Quantity sold cannot be greater than quantity purchased.");
+    return;
+  }
 
     try {
 
