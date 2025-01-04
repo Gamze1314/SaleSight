@@ -100,7 +100,7 @@ const ProductForm = ({
         </button>
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           {formAction === "add_product"
-            ? "Add New Profit and Product:"
+            ? "Add New Profit and Product Information:"
             : `Add New Profit Data for Product: ${productDescription}`}
         </h2>
         <form onSubmit={formik.handleSubmit}>

@@ -8,7 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 
 function AnalyticsPage() {
   const { currentUser } = useContext(AuthContext);
-
+  console.log("Analytics Page rendered.")
 
   return (
     <>

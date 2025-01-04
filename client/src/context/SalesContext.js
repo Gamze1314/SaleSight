@@ -33,7 +33,7 @@ export const SalesProvider = ({ children }) => {
   // Fetching sales analytics data on component mount, and dependency to salesData
   useEffect(() => {
     fetchSalesAnalyticsData();
-  }, [salesData, currentUser]);
+  }, []);
 
 
   // Fetch initial sales data, if user is logged in.
@@ -83,7 +83,7 @@ export const SalesProvider = ({ children }) => {
       (prodData) => prodData.description === prodDescription
     );
     if (prod) {
-      alert(`${prodDescription} already exists in the inventory.`);
+      alert(`${prodDescription.toUpperCase()} already exists in your inventory. Cannot continue with the existing product description.`);
       setError("Product already exists.");
       return;
     }
@@ -98,7 +98,7 @@ export const SalesProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        setError(`Failed to add product: ${response.statusText}`);
+        setError(`Failed to add product: ${error.message}`);
         setLoading(false);
         return; // Exit early if the response is not OK
       }
@@ -141,12 +141,7 @@ export const SalesProvider = ({ children }) => {
 
       // update Sale Analytics and salesData state here
       const { sale_data, sales_analytics } = data;
-      /*TODO:
-        sale_data is product_data including new sales created in sales array
-        Find product_data in salesData by productId
-        Copy salesData into new array object and replace product_data with productId with sale_data
-        setSalesData with copied array
-      */
+
       const updatedProdDataIdx = salesData.findIndex(
         (prod) => prod.id === productId
       );
@@ -155,12 +150,12 @@ export const SalesProvider = ({ children }) => {
       setSalesData(updatedData);
       // replaces existing object in the salesAnalyticsData state.
       setSalesAnalyticsData(sales_analytics);
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
       setError("");
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
       setError(error);
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
     }
     setError("");
   };
@@ -177,18 +172,13 @@ export const SalesProvider = ({ children }) => {
       if (!response.ok) {
         setError(`Failed to delete profit: ${response.statusText}`);
       }
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
 
       // update salesAnalytics
       const data = await response.json();
       const { sale_data, sales_analytics } = data;
 
       const productData = salesData.find((prod) => prod.id === sale_data.id);
-      // const updatedSales = productData?.sales.filter((sale) => {
-      //   sale.sale_id === saleId;
-
-      // })
-      // const updatedProductData = {...productData, sales: updatedSales}
 
       const updatedSalesData = [...salesData];
       updatedSalesData.splice(salesData.indexOf(productData), 1, sale_data);
@@ -226,7 +216,6 @@ export const SalesProvider = ({ children }) => {
         setLoading(false); // Set loading to false once the data is fetched
       }
       const data = await response.json();
-
       // update Sale Analytics and salesData state here
       const { sale_data, sales_analytics } = data;
 
@@ -237,19 +226,15 @@ export const SalesProvider = ({ children }) => {
       const updatedData = [...salesData];
       updatedData.splice(updatedProdDataIdx, 1, sale_data);
 
-      // update the state with the new sales data
       setSalesData(updatedData);
-
-      // update salesAnalytics
       setSalesAnalyticsData(sales_analytics);
-
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
     } catch (error) {
       console.error("Error updating sale:", error.message);
       setError(
         "Error occurred while updating the sale details.Please check the quantity sold."
       );
-      setLoading(false); // Set loading to false once the data is fetched
+      setLoading(false);
     }
     setError("");
   };

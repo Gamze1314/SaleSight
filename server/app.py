@@ -319,9 +319,16 @@ class UserProductSales(Resource):
 
         try:
             data = request.get_json()
-            #create new product
+
+            prod_description = data["description"]
+            # initials are upper 
+            lowerCased = prod_description.lower()
+            formatted = ''.join([word[0].upper()
+                               for word in lowerCased.split()])
+            breakpoint()
+
             # Backend Check: Add a check here to verify if a product with the same name  already exists for the user before adding a new product.
-            if Product.query.filter_by(description=data["description"]).first():
+            if Product.query.filter_by(description=formatted).first():
                 abort(400, "Product already exists")
             
             new_product = Product(description=data["description"])

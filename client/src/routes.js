@@ -64,13 +64,17 @@ const router = createBrowserRouter([
               </SalesProvider>
             ),
           },
+          {
+            path: "*",
+            element: <ErrorPage />,
+          },
         ],
       },
+      {
+        path: "*",
+        element: <ErrorPage />,
+      },
     ],
-  },
-  {
-    path: "*",
-    element: <ErrorPage />,
   },
 ]);
 
