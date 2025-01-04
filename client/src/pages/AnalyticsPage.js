@@ -37,20 +37,3 @@ function AnalyticsPage() {
 }
 
 export default AnalyticsPage;
-
-// Revenue vs Cost Bar Chart
-
-// Shows revenue and costs side by side
-// Easy to compare revenue and cost for each period
-
-// Profit Trend Line Chart
-
-// Shows how profit changes over time
-// Good for identifying trends and patterns
-// Smooth line makes it easy to spot growth or decline
-
-// Combined Performance Overview
-
-// Shows revenue, cost, and quantity sold together
-// Uses bars for revenue/cost and a line for quantity
-// Helps identify relationships between sales volume and financial performance

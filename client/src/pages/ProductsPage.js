@@ -13,20 +13,13 @@ function ProductsPage() {
   const [selectedOption, setSelectedOption] = useState("none");
   const [formAction, setFormAction] = useState("");
 
-  // edit sale mode => formAction(""), showForm(False), selectedOption("view_sales"), selectedProduct = (not null),
-  // show ProductSaleTable with product and sale details.
-
-  // update state depending on the action if edit mode then " edit_metrics"
-  // if add_product... "add_product"
-
   const handleAddProfit = () => {
-    setFormAction("add_product"); // Set action for adding a new product
+    setFormAction("add_product");
     setShowForm(true);
     setSelectedOption("none");
-    setSelectedProduct(null); // Reset selected product
+    setSelectedProduct(null);
   };
   const handleOptionSelect = (productId, option) => {
-    //SET PRODUCT ID
     const selectedProd = salesData.find((prod) => prod.id === productId);
     if (selectedProd) {
       setSelectedProduct(selectedProd);
@@ -34,9 +27,9 @@ function ProductsPage() {
       setSelectedOption(option);
       if (option === "edit_metrics") {
         setFormAction("edit_metrics");
-        setShowForm(true); // Show the form when "edit_metrics" is selected
+        setShowForm(true);
       } else {
-        setShowForm(false); // Hide the form for other options
+        setShowForm(false);
       }
     }
   };
@@ -44,9 +37,9 @@ function ProductsPage() {
   const handleOperationComplete = () => {
     // Call this function when the sales view is closed or metrics are edited (after every operation.)
     setShowForm(false);
-    setFormAction(""); // Reset form action
-    setSelectedOption("none"); // Reset the dropdown to "none"
-    setSelectedProduct(null); // Reset the selected product ID
+    setFormAction("");
+    setSelectedOption("none");
+    setSelectedProduct(null);
   };
 
   const handleEditFormDisplay = () => {
@@ -57,15 +50,14 @@ function ProductsPage() {
     <div className="flex items-center justify-between w-full mt-10">
       <MainNavBar />
       <div className="w-full mt-6">
-        <ProductToolBar handleAddProfit={handleAddProfit} />
-        {/* Render the form if "edit_metrics" is selected */}
+        <ProductToolBar handleAddProfit={handleAddProfit}/>
         {showForm && (
           <ProductForm
             onClose={() => setShowForm(false)}
             selectedOption={selectedOption}
-            selectedProductId={selectedProduct?.id} // Pass selectedProductId to the form
-            formAction={formAction} // Pass formAction to the form
-            onOperationComplete={handleOperationComplete} // Handle operationComplete
+            selectedProductId={selectedProduct?.id}
+            formAction={formAction}
+            onOperationComplete={handleOperationComplete}
           />
         )}
         {selectedProduct && selectedOption === "view_sales" && (
@@ -75,14 +67,8 @@ function ProductsPage() {
             onEdit={handleEditFormDisplay}
           />
         )}
-        {/* {selectedProduct && showEditForm && (
-          <ProductSaleEditForm
-            onClose={handleOperationComplete}
-            selectedProduct={selectedProduct}
-          />
-        )} */}
         <ProductsList
-          onOptionSelect={handleOptionSelect} //// Handle product and option selection
+          onOptionSelect={handleOptionSelect}
           selectedProduct={selectedProduct}
         />
       </div>
