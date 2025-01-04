@@ -27,7 +27,7 @@ function ProductsList({ onOptionSelect }) {
             <th className="p-3 text-left border border-gray-200">
               Quantity Sold
             </th>
-            <th className="p-3 text-center border border-gray-200"></th>
+            <th className="p-3 text-center border border-gray-200">Select Action</th>
           </tr>
         </thead>
         {/* Table Body */}

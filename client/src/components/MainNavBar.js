@@ -31,11 +31,10 @@ function MainNavBar() {
           My Store
         </NavLink>
         <NavLink
-          to="/logout"
           onClick={handleLogOut}
           className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
         >
-          Log out
+          Log Out
         </NavLink>
       </div>
     </div>

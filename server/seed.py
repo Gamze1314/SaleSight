@@ -20,7 +20,7 @@ with app.app_context():
         name='Jane Smith',
         email='jane@gmail.com',
         username='janesmith',
-        password_hash=flask_bcrypt.generate_password_hash('password456')
+        password_hash=flask_bcrypt.generate_password_hash('bob')
     )
     db.session.add_all([user1, user2])
     db.session.commit()

@@ -11,6 +11,7 @@ flask-migrate = "*"
 sqlalchemy-serializer = "*"
 flask-bcrypt = "*"
 python-dotenv = "*"
+flask-cors = "*"
 
 [dev-packages]
 

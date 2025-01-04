@@ -10,11 +10,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_restful import Api
 import os
-# from datetime import timedelta
+from flask_cors import CORS
 
 
 # Instantiates app, set attributes
 app = Flask(__name__)
+cors = CORS(app)  # Allows cross-origin requests
 # creates a bcrpyt object
 flask_bcrypt = Bcrypt(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'

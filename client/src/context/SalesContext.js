@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { AuthContext } from "./AuthContext";
 
 export const SalesContext = createContext();
 
@@ -9,57 +10,73 @@ export const SalesProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [salesAnalyticsData, setSalesAnalyticsData] = useState(null);
 
+  const { currentUser } = useContext(AuthContext); // context state to check if user logged in.
+
+  // do not send GET request if user not logged in. currentUser ?
 
   // Fetching sale analytics data on component mount, and dependency to salesData
   const fetchSalesAnalyticsData = async () => {
-   try {
-     const response = await fetch("/sales_analytics");
-     const data = await response.json();
-     setSalesAnalyticsData(data);
-     setLoading(false); // Set loading to false once the data is fetched
-   } catch (error) {
-     setError(error);
-     setLoading(false); // Set loading to false in case of error
-   }
- };
+    if (currentUser) {
+      try {
+        const response = await fetch("/sales_analytics");
+        const data = await response.json();
+        setSalesAnalyticsData(data);
+        setLoading(false); // Set loading to false once the data is fetched
+      } catch (error) {
+        setError(error);
+        setLoading(false); // Set loading to false in case of error
+      }
+    } else {
+      // if user not logged in, clear salesData and salesAnalyticsData
+      setSalesData([]);
+      setSalesAnalyticsData(null);
+      setLoading(false); // Set loading to false once the data is fetched
+      setError("The user is not authenticated. Cannot fetch data.");
+    }
+  };
 
   // Fetching sales analytics data on component mount, and dependency to salesData
   useEffect(() => {
-    // if location.pathname is /profit_center
     fetchSalesAnalyticsData();
-  }, [salesData]);
-
+  }, [salesData, currentUser]);
 
   // Fetch initial sales data
   useEffect(() => {
     const fetchSalesData = async () => {
-      // loading state is true here
-      setLoading(true);
-      // reset previous error state
-      setError(null);
+      if (currentUser) {
+        // loading state is true here
+        setLoading(true);
+        // reset previous error state
+        setError(null);
 
-      try {
-        const res = await fetch("/user_sales");
-        if (res.status === 200) {
-          const data = await res.json();
-          setSalesData(data);
-          setLoading(false); // Set loading to false once the data is fetched
-        } else if (res.status === 404) {
-          setError("No sales data found.");
-          setLoading(false); // Set loading to false once the data is fetched
-        } else {
-          setError("Failed to fetch sales data.");
+        try {
+          const res = await fetch("/user_sales");
+          if (res.status === 200) {
+            const data = await res.json();
+            setSalesData(data);
+            setLoading(false); // Set loading to false once the data is fetched
+          } else if (res.status === 404) {
+            setError("No sales data found.");
+            setLoading(false); // Set loading to false once the data is fetched
+          } else {
+            setError("Failed to fetch sales data.");
+            setLoading(false); // Set loading to false once the data is fetched
+          }
+        } catch (err) {
+          setError(err.message);
           setLoading(false); // Set loading to false once the data is fetched
         }
-      } catch (err) {
-        setError(err.message);
+      } else {
+        // if user not logged in, clear salesData and salesAnalyticsData
+        setSalesData([]);
+        setSalesAnalyticsData(null);
         setLoading(false); // Set loading to false once the data is fetched
+        setError("The user is not authenticated. Cannot fetch data.");
       }
     };
-    setError(null);
-    setLoading(false); // Set loading to false once the data is fetched
+
     fetchSalesData();
-  }, []);
+  }, [currentUser]);
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
@@ -145,15 +162,14 @@ export const SalesProvider = ({ children }) => {
       // replaces existing object in the salesAnalyticsData state.
       setSalesAnalyticsData(sales_analytics);
       setLoading(false); // Set loading to false once the data is fetched
-      setError("")
+      setError("");
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
-      setError(error)
+      setError(error);
       setLoading(false); // Set loading to false once the data is fetched
     }
-    setError("")
+    setError("");
   };
-
 
   const clearError = () => setError(null);
 
@@ -173,17 +189,17 @@ export const SalesProvider = ({ children }) => {
       const data = await response.json();
       const { sale_data, sales_analytics } = data;
 
-      const productData = salesData.find((prod) => prod.id === sale_data.id)
+      const productData = salesData.find((prod) => prod.id === sale_data.id);
       // const updatedSales = productData?.sales.filter((sale) => {
       //   sale.sale_id === saleId;
 
       // })
       // const updatedProductData = {...productData, sales: updatedSales}
 
-      const updatedSalesData = [...salesData]
-      updatedSalesData.splice(salesData.indexOf(productData), 1 , sale_data)
-      setSalesData(updatedSalesData)
-      console.log("Updated sale data", updatedSalesData)
+      const updatedSalesData = [...salesData];
+      updatedSalesData.splice(salesData.indexOf(productData), 1, sale_data);
+      setSalesData(updatedSalesData);
+      console.log("Updated sale data", updatedSalesData);
       setSalesAnalyticsData(sales_analytics);
 
       setError("");
@@ -193,8 +209,6 @@ export const SalesProvider = ({ children }) => {
       setLoading(false); // Set loading to false once the data is fetched
     }
   };
-
-
 
   const updateSale = async (values, saleId) => {
     // values must be integer
