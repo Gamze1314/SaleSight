@@ -6,8 +6,7 @@ export const AuthContext = createContext(null); // Initial value null
 export const AuthProvider = ({ children }) => {
   //user state variable to be provided to the entire app.
   const [currentUser, setCurrentUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [error, setError] = useState(null); // Error state
+  const [authError, setAuthError] = useState(null); // Error state
   const navigate = useNavigate(); //
 
   // Check session on mount
@@ -18,17 +17,14 @@ export const AuthProvider = ({ children }) => {
         if (response.ok) {
           const user = await response.json();
           setCurrentUser(user);
-          setIsAuthenticated(true);
           navigate("/my_store");
-          setError(""); // Clear any previous error
+          setAuthError(""); // Clear any previous error
         }
       } catch (err) {
-        setError("An error occurred while checking session.");
+        setAuthError("An error occurred while checking session.");
         console.error(err);
-        setIsAuthenticated(false);
       }
     };
-
     checkSession();
   }, []);
 
@@ -46,19 +42,18 @@ export const AuthProvider = ({ children }) => {
         //wait for Promise to resolve.
         const data = await response.json();
         setCurrentUser(data);
-        setIsAuthenticated(true);
         navigate("/my_store");
-        setError(""); // Clear any previous error
+        setAuthError(""); // Clear any previous error
       } else {
         const errorData = await response.json();
         console.log(errorData);
-        setError(
+        setAuthError(
           errorData.message ||
             "Failed to log in. Please check your credentials."
         );
       }
     } catch (err) {
-      setError("Login request failed");
+      setAuthError("Login request failed");
       console.error(err);
     }
   };
@@ -76,17 +71,16 @@ export const AuthProvider = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         setCurrentUser(data);
-        setIsAuthenticated(true);
         // navigate to products page or another.
         navigate("/my_store");
+        setAuthError("");
       } else {
         const errorData = await response.json();
-        setError(errorData.message || "Failed to sign up");
+        setAuthError(errorData || "Failed to sign up");
       }
     } catch (err) {
-      setError("Signup request failed");
+      setAuthError("Signup request failed. Please check your credentials and try again.");
       console.error(err);
-      setIsAuthenticated(false);
     }
   };
 
@@ -96,28 +90,24 @@ export const AuthProvider = ({ children }) => {
         method: "DELETE",
       });
       setCurrentUser(null);
-      setIsAuthenticated(false); // Reset authentication state
       navigate("/login"); // Navigate to login page after logout
+      setAuthError("");
     } catch (err) {
-      setError("Failed to log out");
+      setAuthError("Failed to log out");
       console.error(err);
     }
   };
-
-  console.log(currentUser)
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
         setCurrentUser,
-        isAuthenticated, // Provide isAuthenticated state
-        setIsAuthenticated,
-        setError, // Provide error state
+        setAuthError, // Provide error state
         login,
         signup,
         logOut,
-        error, // Provide error state
+        authError, // Provide error state
       }}
     >
       {children}

@@ -7,7 +7,7 @@ import ProductProfitTable from "../components/ProductProfitTable";
 import { SalesContext } from "../context/SalesContext";
 
 function ProductsPage() {
-  const { loading, salesData } = useContext(SalesContext);
+  const { salesData } = useContext(SalesContext);
   const [showForm, setShowForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedOption, setSelectedOption] = useState("none");

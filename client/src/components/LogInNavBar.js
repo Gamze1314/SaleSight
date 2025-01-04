@@ -17,10 +17,10 @@ function LogInNavBar() {
           About
         </NavLink>
         <NavLink
-          to="/signup"
+          to="/login"
           className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
         >
-          Signup
+          Login
         </NavLink>
       </div>
     </div>

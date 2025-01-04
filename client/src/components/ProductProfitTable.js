@@ -137,10 +137,11 @@ function ProductProfitTable({ onClose, selectedProduct }) {
           ✕
         </button>
         <p className="text-red-700">{error}</p>
+        <p className="text-center text-lg text-black-500">Profit Table</p>
         {localData.length > 0 ? (
           <>
-            <h4 className="text-lg font-medium mb-4">
-              Sales for Product: {localData[0].productDescription}
+            <h4 className="text-md font-medium mb-4">
+              The sales data is shown for Product: '{localData[0].productDescription}'
             </h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -162,7 +163,10 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                 </thead>
                 <tbody>
                   {localData.map((sale, index) => (
-                    <tr key={sale.saleId ? sale.saleId : index} className="border-b hover:bg-gray-50">
+                    <tr
+                      key={sale.saleId ? sale.saleId : index}
+                      className="border-b hover:bg-gray-50"
+                    >
                       <td className="p-2">{index + 1}</td>
                       <td className="p-2">{sale.saleDate}</td>
                       <td className="p-2 text-right">
@@ -274,7 +278,11 @@ function ProductProfitTable({ onClose, selectedProduct }) {
             </div>
           </>
         ) : (
-          <p className="text-center text-gray-500">No sales data available</p>
+            <p className="text-center text-gray-500">
+              No sales data found for product '{prodData.description}'. Please
+              navigate to Select Action Tab, then select 'Add Profit Metrics'
+              option to add sales data.
+            </p>
         )}
       </div>
     </div>

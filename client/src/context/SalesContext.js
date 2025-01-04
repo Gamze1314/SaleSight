@@ -9,7 +9,6 @@ export const SalesProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [salesAnalyticsData, setSalesAnalyticsData] = useState(null);
-
   const { currentUser } = useContext(AuthContext); // context state to check if user logged in.
 
   // do not send GET request if user not logged in. currentUser ?
@@ -27,10 +26,6 @@ export const SalesProvider = ({ children }) => {
         setLoading(false); // Set loading to false in case of error
       }
     } else {
-      // if user not logged in, clear salesData and salesAnalyticsData
-      setSalesData([]);
-      setSalesAnalyticsData(null);
-      setLoading(false); // Set loading to false once the data is fetched
       setError("The user is not authenticated. Cannot fetch data.");
     }
   };
@@ -40,7 +35,8 @@ export const SalesProvider = ({ children }) => {
     fetchSalesAnalyticsData();
   }, [salesData, currentUser]);
 
-  // Fetch initial sales data
+
+  // Fetch initial sales data, if user is logged in.
   useEffect(() => {
     const fetchSalesData = async () => {
       if (currentUser) {
@@ -74,7 +70,6 @@ export const SalesProvider = ({ children }) => {
         setError("The user is not authenticated. Cannot fetch data.");
       }
     };
-
     fetchSalesData();
   }, [currentUser]);
 
@@ -116,7 +111,6 @@ export const SalesProvider = ({ children }) => {
       setSalesData((prev) => {
         return [...prev, sale_data];
       });
-
       // Update salesAnalyticsData
       setSalesAnalyticsData(sales_analytics);
 

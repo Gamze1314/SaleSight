@@ -28,8 +28,7 @@ function ProfitAnalytics() {
     {
       sale_date: new Date().toLocaleDateString(),
       profit: salesAnalyticsData.total_profit_amount,
-      margin: salesAnalyticsData.average_profit_margin, 
-      average_profit_margin: salesAnalyticsData.average_profit_margin,
+      margin: salesAnalyticsData.average_profit_margin,
     },
   ];
 
@@ -51,10 +50,10 @@ function ProfitAnalytics() {
 // Function to dynamically format tooltip values
 const formatMargin = (value, name) => {
   if (name === "Profit Amount") {
-    return [formatCurrency(value), "Profit"];
+    return [formatCurrency(value), "Total Profit"];
   }
   if (name === "Margin") {
-    return [formatProfitMargin(value), "Margin"];
+    return [formatProfitMargin(value), "Average Margin"];
   }
   return value;
 };
@@ -100,11 +99,7 @@ const RelatedInfo = ({ data, username }) => (
     {data?.length > 0 ? (
       <div>
         <p className="font-medium">User: {username}</p>
-        <p className="font-medium">
-          Products:{" "}
-          {data.map((product) => product.description).join(", ") ||
-            "No products found."}
-        </p>
+        <p className="font-medium">Inventory Count: {data.length}</p>
       </div>
     ) : (
       <p>No data available</p>

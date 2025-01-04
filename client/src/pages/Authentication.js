@@ -8,7 +8,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa"; // Import icons
 
 function Authentication() {
-  const { login, error, signup } = useContext(AuthContext);
+  const { login, authError, setAuthError, signup } = useContext(AuthContext);
   const location = useLocation();
 
   const [formType, setFormType] = useState(
@@ -60,7 +60,12 @@ function Authentication() {
     }
   }, [location.pathname]);
 
-  // if user is already authenticated navigate to protected routes.
+  // useEffect to clear previous error state if signup or login switch is done.
+  useEffect(() => {
+    if (formType === "signup" || formType === "login") {
+      setAuthError("");
+    }
+  }, [formType]);
 
   // Styling classes
   const formClass =
@@ -73,7 +78,7 @@ function Authentication() {
         <h1 className="text-2xl font-semibold mb-4">
           {formType === "signup" ? "Sign Up" : "Login"}
         </h1>
-        {error ? <p className="text-red-500 text-sm">{error}</p> : null}
+        {authError ? <p className="text-red-500 text-sm">{authError}</p> : null}
         <form className={formClass} onSubmit={formik.handleSubmit}>
           {/* Username Input */}
           <div className="relative mb-4">

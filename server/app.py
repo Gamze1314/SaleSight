@@ -107,7 +107,7 @@ class Login(Resource):
             return make_response(user.to_dict(), 200)
 
         except ValueError as e:
-            abort(500, f"An error occurred: {str(e)}")
+            abort(500, f"Failed to login: {str(e)}")
 
 
 api.add_resource(Login, '/login')
