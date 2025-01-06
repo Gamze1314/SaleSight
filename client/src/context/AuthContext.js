@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
         );
       }
     } catch (err) {
-      setAuthError("Login request failed");
+      setAuthError("Login request failed.Please try again later.");
       console.error(err);
     }
   };

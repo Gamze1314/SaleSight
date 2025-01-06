@@ -74,7 +74,7 @@ const ProductForm = ({
     onSubmit: async (values) => {
       try {
         // Clear previous error
-        setError("");
+        setError(null);
 
         if (selectedOption === "edit_metrics") {
           await addProductSale(values, product.id);

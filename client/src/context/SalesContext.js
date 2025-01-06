@@ -4,24 +4,29 @@ import { AuthContext } from "./AuthContext";
 export const SalesContext = createContext();
 
 export const SalesProvider = ({ children }) => {
-  // state to hold user sales, profit and cost.
   const [salesData, setSalesData] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [salesAnalyticsData, setSalesAnalyticsData] = useState(null);
-  const { currentUser } = useContext(AuthContext); // context state to check if user logged in.
+  const { currentUser } = useContext(AuthContext);
 
   // do not send GET request if user not logged in. currentUser ?
 
   // Fetching sale analytics data on component mount, and dependency to salesData
   const fetchSalesAnalyticsData = async () => {
     if (currentUser) {
+      console.log("user is authenticated", currentUser)
       try {
         const response = await fetch("/sales_analytics");
+
+        if (response.status === 200) {
+        console.log("Sales analytics fetched successfully.")
         const data = await response.json();
         setSalesAnalyticsData(data);
         setLoading(false); // Set loading to false once the data is fetched
+        }
       } catch (error) {
+        console.error(error);
         setError(error);
         setLoading(false); // Set loading to false in case of error
       }
@@ -30,7 +35,7 @@ export const SalesProvider = ({ children }) => {
     }
   };
 
-  // Fetching sales analytics data on component mount, and dependency to salesData
+  // Fetching sales analytics data on component mount.
   useEffect(() => {
     fetchSalesAnalyticsData();
   }, []);
@@ -40,18 +45,17 @@ export const SalesProvider = ({ children }) => {
   useEffect(() => {
     const fetchSalesData = async () => {
       if (currentUser) {
-        // loading state is true here
         setLoading(true);
-        // reset previous error state
         setError(null);
-
         try {
           const res = await fetch("/user_sales");
           if (res.status === 200) {
+            console.log("Sales fetched successfully.")
             const data = await res.json();
             setSalesData(data);
             setLoading(false); // Set loading to false once the data is fetched
           } else if (res.status === 404) {
+            console.error(error);
             setError("No sales data found.");
             setLoading(false); // Set loading to false once the data is fetched
           } else {
@@ -59,6 +63,7 @@ export const SalesProvider = ({ children }) => {
             setLoading(false); // Set loading to false once the data is fetched
           }
         } catch (err) {
+          console.error(err);
           setError(err.message);
           setLoading(false); // Set loading to false once the data is fetched
         }
@@ -112,6 +117,7 @@ export const SalesProvider = ({ children }) => {
         setLoading(false);
         return; // Exit early if the response is not OK
       } else if (response.status === 500) {
+        console.error(error);
         setError("Internal server error. Please try again later.");
         setLoading(false);
         return; // Exit early if the response is not OK
@@ -152,13 +158,13 @@ export const SalesProvider = ({ children }) => {
       // replaces existing object in the salesAnalyticsData state.
       setSalesAnalyticsData(sales_analytics);
       setLoading(false);
-      setError("");
+      setError(null);
     } catch (error) {
       console.error("Error updating profit metrics:", error.message);
       setError(error);
       setLoading(false);
     }
-    setError("");
+    setError(null);
   };
 
   const clearError = () => setError(null);
@@ -187,7 +193,7 @@ export const SalesProvider = ({ children }) => {
       console.log("Updated sale data", updatedSalesData);
       setSalesAnalyticsData(sales_analytics);
 
-      setError("");
+      setError(null);
       setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error deleting sale:", error.message);
@@ -237,7 +243,7 @@ export const SalesProvider = ({ children }) => {
       );
       setLoading(false);
     }
-    setError("");
+    setError(null);
   };
 
   return (

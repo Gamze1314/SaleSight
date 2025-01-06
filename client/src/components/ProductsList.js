@@ -8,7 +8,7 @@ function ProductsList({ onOptionSelect }) {
   // Use useEffect unconditionally
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => setError(""), 10000); // 10 seconds
+      const timer = setTimeout(() => setError(null), 10000); // 10 seconds
       // Cleanup function to clear the timer
       return () => clearTimeout(timer);
     }

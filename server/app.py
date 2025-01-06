@@ -145,7 +145,6 @@ class SalesAnalytics(Resource):
         if not user:
             abort(404, "User not found")
 
-
         try:
 
             # Initialize overall totals

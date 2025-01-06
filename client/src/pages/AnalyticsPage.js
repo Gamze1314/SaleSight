@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import MainNavBar from "../components/MainNavBar";
 import SaleAnalytics from "../components/SaleAnalytics";
 import { ProfitAnalytics } from "../components/ProfitAnalytics";
@@ -8,7 +8,7 @@ import { AuthContext } from "../context/AuthContext";
 
 function AnalyticsPage() {
   const { currentUser } = useContext(AuthContext);
-  console.log("Analytics Page rendered.")
+
 
   return (
     <>
