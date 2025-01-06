@@ -4,24 +4,35 @@ import { AuthContext } from "../context/AuthContext";
 
 function ErrorPage() {
   // Access errors from both contexts
-  const { error: salesError } = useContext(SalesContext) || {};
+  const { error: error } = useContext(SalesContext) || {};
   const { error: authError } = useContext(AuthContext) || {};
 
+  // navigate to login page
+  const navigateToLogin = () => {
+    window.location.href = "/login";
+  };
 
+  // If there are any errors, display them and provide a link to the login page
+  if (error || authError) {
+    return (
+      <div className="error-container">
+        <div className="error-message">
+          <h2>An error occurred</h2>
+          <p>Please try again or contact support.</p>
+          <button onClick={navigateToLogin}>Login</button>
+        </div>
+      </div>
+    );
+  }
+
+  // If there are no errors, display a generic message
   return (
     <div className="error-container">
-      {salesError && (
-        <div className="error-message">
-          <h2>Sales Error: {salesError}</h2>
-        </div>
-      )}
-      {authError && (
-        <div className="error-message">
-          <h2>Authentication Error: {authError}</h2>
-        </div>
-      )}
+      <h2>An error occurred</h2>
+      <p>Please try again or contact support.</p>
     </div>
   );
-};
+
+}
 
 export default ErrorPage;

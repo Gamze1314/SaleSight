@@ -52,7 +52,7 @@ const router = createBrowserRouter([
             path: "profit_center",
             element: (
               <SalesProvider>
-                <AnalyticsPage /> {/* Wrap App with AuthProvider */}
+                <AnalyticsPage />
               </SalesProvider>
             ),
           },
@@ -64,15 +64,17 @@ const router = createBrowserRouter([
               </SalesProvider>
             ),
           },
-          {
-            path: "*",
-            element: <ErrorPage />,
-          },
         ],
       },
       {
         path: "*",
-        element: <ErrorPage />,
+        element: (
+          <AuthProvider>
+            <SalesProvider>
+              <ErrorPage />
+            </SalesProvider>
+          </AuthProvider>
+        ),
       },
     ],
   },

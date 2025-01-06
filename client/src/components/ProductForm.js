@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { SalesContext } from "../context/SalesContext";
@@ -36,7 +36,8 @@ const ProductForm = ({
   formAction,
   onOperationComplete,
 }) => {
-  const { salesData, addProduct, addProductSale } = useContext(SalesContext);
+  const { salesData, addProduct, addProductSale, error, setError } =
+    useContext(SalesContext);
 
   // else, use salesData to find the product.
   const relevantData = salesData;
@@ -71,19 +72,24 @@ const ProductForm = ({
     enableReinitialize: true, // Allows form to reinitialize when `initialValues` change
     validationSchema: ValidationSchema,
     onSubmit: async (values) => {
-      //async API call
       try {
+        // Clear previous error
+        setError("");
+
         if (selectedOption === "edit_metrics") {
-          //POST request for sale, cost, profit data addition for the selected product.
-          addProductSale(values, product.id);
+          await addProductSale(values, product.id);
         } else {
-          //POST request for new product, sale, cost, profit addition.
-          addProduct(values);
+          await addProduct(values);
         }
-        onClose(); // Close the form
-        onOperationComplete(); // Reset parent component state
+        // If there is no error, close the form and reset states
+        if (!error) {
+          onClose();
+          onOperationComplete();
+          formik.resetForm();
+        }
       } catch (error) {
-        console.error("Error submitting form:", error);
+        // After submitting the form, and response is not okay..
+        setError(error.message || "An error occurred"); // Set error state if there is one
       }
     },
   });

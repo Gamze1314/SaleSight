@@ -27,7 +27,7 @@ class CheckSession(Resource):
             else:
                 abort(401, 'User is not authenticated.')
         except Exception as e:
-                abort(500, 'Internal server error.')
+                abort(500, 'Please enter your credentials to login.')
 
 
 api.add_resource(CheckSession, '/check_session')
@@ -95,11 +95,11 @@ class Login(Resource):
 
             if not user:
                 # Specific error for non-existent user
-                abort(401, "Username does not exist")
+                abort(401, "The username does not exist.")
 
             if not flask_bcrypt.check_password_hash(user.password_hash, password):
                 # Specific error for incorrect password
-                abort(401, "Incorrect password")
+                abort(401, "You have entered an incorrect password. Please try again.")
 
             # If authentication is successful
             session['user_id'] = user.id
@@ -312,26 +312,26 @@ class UserProductSales(Resource):
 
 #POST request handler => creates new product, sale, cost, profit data for new user. 
     def post(self):
-        user_id = session.get("user_id")
+        user_id = session["user_id"]
 
         if not user_id:
             abort(401, "User is not authenticated.")
 
-        try:
-            data = request.get_json()
+        data = request.get_json()
 
-            prod_description = data["description"]
-            # initials are upper 
-            lowerCased = prod_description.lower()
-            formatted = ''.join([word[0].upper()
-                               for word in lowerCased.split()])
-            breakpoint()
+        prod_description = data["description"]
+        # prod desc. upper
+        formatted = prod_description.upper()
 
-            # Backend Check: Add a check here to verify if a product with the same name  already exists for the user before adding a new product.
-            if Product.query.filter_by(description=formatted).first():
-                abort(400, "Product already exists")
+        # Backend Check: Add a check here to verify if a product with the same name  already exists for the user before adding a new product.
+        existing_product = Product.query.filter_by(
+                        description=formatted).first()
+        if existing_product and existing_product.description.upper() == formatted:
+            abort(400, "Product already exists")
             
-            new_product = Product(description=data["description"])
+        try:
+
+            new_product = Product(description=formatted)
 
             db.session.add(new_product)
             db.session.commit()
@@ -760,8 +760,8 @@ class SaleByID(Resource):
             db.session.rollback()
             abort(500, f"An error occurred: {str(e)}")
 
-
 api.add_resource(SaleByID, '/sale/<int:sale_id>')
+
 
 
 # this script runs the app

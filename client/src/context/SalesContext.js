@@ -75,16 +75,10 @@ export const SalesProvider = ({ children }) => {
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
-    // Declare variables
-    const prodDescription = values["description"];
-
-    // Check if the product exists in salesData
-    const prod = salesData.find(
-      (prodData) => prodData.description === prodDescription
-    );
-    if (prod) {
-      alert(`${prodDescription.toUpperCase()} already exists in your inventory. Cannot continue with the existing product description.`);
-      setError("Product already exists.");
+    // check if product is in the state and setError. 
+    const existingProduct = salesData.find((item) => item.description === values.description);
+    if (existingProduct) {
+      setError(`The Product ${existingProduct.description} already exists.`);
       return;
     }
 
@@ -97,24 +91,31 @@ export const SalesProvider = ({ children }) => {
         body: JSON.stringify(values),
       });
 
-      if (!response.ok) {
-        setError(`Failed to add product: ${error.message}`);
+      if (response.status === 200) {
+        const data = await response.json();
+        console.log("Product and profit data added successfully:", data);
+
+        // Update salesData
+        const { sale_data, sales_analytics } = data;
+        setSalesData((prev) => {
+          return [...prev, sale_data];
+        });
+        // Update salesAnalyticsData
+        setSalesAnalyticsData(sales_analytics);
+
+        setLoading(false); // Set loading to false once the data is fetched
+
+      } else if (response.status === 400) {
+        console.log("response is 400")
+        const errorData = await response.json()
+        setError(`${errorData.message}`);
+        setLoading(false);
+        return; // Exit early if the response is not OK
+      } else if (response.status === 500) {
+        setError("Internal server error. Please try again later.");
         setLoading(false);
         return; // Exit early if the response is not OK
       }
-
-      const data = await response.json();
-      console.log("Product and profit data added successfully:", data);
-
-      // Update salesData
-      const { sale_data, sales_analytics } = data;
-      setSalesData((prev) => {
-        return [...prev, sale_data];
-      });
-      // Update salesAnalyticsData
-      setSalesAnalyticsData(sales_analytics);
-
-      setLoading(false); // Set loading to false once the data is fetched
     } catch (error) {
       console.error("Error adding product:", error);
       setError(error.message);

@@ -19,9 +19,12 @@ export const AuthProvider = ({ children }) => {
           setCurrentUser(user);
           navigate("/my_store");
           setAuthError(""); // Clear any previous error
+        } else {
+          const errorData = await response.json();
+          setAuthError(errorData.message);
         }
       } catch (err) {
-        setAuthError("An error occurred while checking session.");
+        setAuthError("An error occurred while logging in.");
         console.error(err);
       }
     };
@@ -68,7 +71,7 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ username, password, name, email }),
       });
-      if (response.ok) {
+      if (response.status === 200) {
         const data = await response.json();
         setCurrentUser(data);
         // navigate to products page or another.
@@ -76,7 +79,7 @@ export const AuthProvider = ({ children }) => {
         setAuthError("");
       } else {
         const errorData = await response.json();
-        setAuthError(errorData || "Failed to sign up");
+        setAuthError(errorData.message || "Failed to sign up");
       }
     } catch (err) {
       setAuthError("Signup request failed. Please check your credentials and try again.");

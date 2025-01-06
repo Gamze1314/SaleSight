@@ -3,13 +3,13 @@ import { SalesContext } from "../context/SalesContext";
 import { formatCurrency } from "../utils";
 
 function ProductProfitTable({ onClose, selectedProduct }) {
-  const { deleteProductSale, updateSale, error, salesData } = useContext(SalesContext);
+  const { deleteProductSale, updateSale, error, salesData } =
+    useContext(SalesContext);
   const [editSaleId, setEditSaleId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [localData, setLocalData] = useState([]);
 
-
-  const prodData = salesData.find(prod => prod.id === selectedProduct.id)
+  const prodData = salesData.find((prod) => prod.id === selectedProduct.id);
 
   // Process and set initial data
   useEffect(() => {
@@ -44,14 +44,13 @@ function ProductProfitTable({ onClose, selectedProduct }) {
   }, [selectedProduct]);
 
   const handleDelete = async (saleId) => {
-    alert("Are you sure you want to delete this profit metric?")
+    alert("Are you sure you want to delete this profit metric?");
     deleteProductSale(saleId);
-      // Update local data after successful deletion
-      setLocalData((prevData) => {
-        const updatedData = prevData.filter((sale) => sale.saleId !== saleId)
-      return updatedData
-  });
-    
+    // Update local data after successful deletion
+    setLocalData((prevData) => {
+      const updatedData = prevData.filter((sale) => sale.saleId !== saleId);
+      return updatedData;
+    });
   };
 
   const handleUpdate = (saleId) => {
@@ -68,29 +67,30 @@ function ProductProfitTable({ onClose, selectedProduct }) {
     // 10 , 15
     const sale = localData.find((sale) => sale.saleId === saleId);
 
-  const updatedTotalSold =
-    selectedProduct.total_quantity_sold +
-    (Number(editValues.quantitySold) - sale.quantity_sold);
-        console.log(
-          selectedProduct.total_quantity_purchased,
-          selectedProduct.total_quantity_sold,
-          Number(editValues.quantitySold)
-        );
-  if (
-    selectedProduct.total_quantity_purchased <
-      Number(editValues.quantitySold) ||
-    selectedProduct.total_quantity_purchased < updatedTotalSold
-  ) {
-    alert("Quantity sold cannot be greater than quantity purchased.");
-    return;
-  }
+    const updatedTotalSold =
+      selectedProduct.total_quantity_sold +
+      (Number(editValues.quantitySold) - sale.quantity_sold);
+    console.log(
+      selectedProduct.total_quantity_purchased,
+      selectedProduct.total_quantity_sold,
+      Number(editValues.quantitySold)
+    );
+    if (
+      selectedProduct.total_quantity_purchased <
+        Number(editValues.quantitySold) ||
+      selectedProduct.total_quantity_purchased < updatedTotalSold
+    ) {
+      alert(
+        `Quantity sold cannot be greater than quantity purchased.The quantity purchased is ${selectedProduct.total_quantity_purchased}.`
+      );
+      return;
+    }
 
     try {
-
       const updatedValues = {
-              quantity_sold: parseInt(editValues.quantitySold, 10),
-              unit_sale_price: parseFloat(editValues.unitSalePrice),
-            };
+        quantity_sold: parseInt(editValues.quantitySold, 10),
+        unit_sale_price: parseFloat(editValues.unitSalePrice),
+      };
 
       const updatedSale = await updateSale(editValues, saleId);
 
@@ -113,7 +113,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
       setLocalData(updatedSales);
       setEditSaleId(null);
     } catch (err) {
-      alert("Failed to update ")
+      alert("Failed to update ");
       console.error("Failed to update sale:", err);
       // Handle error appropriately
     }
@@ -136,12 +136,13 @@ function ProductProfitTable({ onClose, selectedProduct }) {
         >
           ✕
         </button>
-        <p className="text-red-700">{error}</p>
+        {error && <div className="text-red-700">{error}</div>}
         <p className="text-center text-lg text-black-500">Profit Table</p>
         {localData.length > 0 ? (
           <>
             <h4 className="text-md font-medium mb-4">
-              The sales data is shown for Product: '{localData[0].productDescription}'
+              The sales data is shown for Product: '
+              {localData[0].productDescription}'
             </h4>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -206,7 +207,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
                       </td>
                       <td className="p-2 text-center flex justify-center">
                         {/* conditional rendering if edit is clicked , hide delete, show save. */}
-                        {editSaleId === sale.saleId ? (
+                        {editSaleId === sale.saleId && !error ? (
                           <>
                             <button
                               className="text-green-500 mr-4 hover:underline"
@@ -278,11 +279,11 @@ function ProductProfitTable({ onClose, selectedProduct }) {
             </div>
           </>
         ) : (
-            <p className="text-center text-gray-500">
-              No sales data found for product '{prodData.description}'. Please
-              navigate to Select Action Tab, then select 'Add Profit Metrics'
-              option to add sales data.
-            </p>
+          <p className="text-center text-gray-500">
+            No sales data found for product '{prodData.description}'. Please
+            navigate to Select Action Tab, then select 'Add Profit Metrics'
+            option to add sales data.
+          </p>
         )}
       </div>
     </div>

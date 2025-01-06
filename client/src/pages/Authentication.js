@@ -90,7 +90,7 @@ function Authentication() {
                 type="text"
                 name="username"
                 placeholder="Please enter your username..."
-                value={formik.values.username}
+                value={formik.values.username || ""}
                 onChange={formik.handleChange}
               />
               <FaUser className="mt-4 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -112,7 +112,7 @@ function Authentication() {
                 type="password"
                 name="password"
                 placeholder="Password"
-                value={formik.values.password}
+                value={formik.values.password || ""}
                 onChange={formik.handleChange}
               />
               <FaLock className="mt-4 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -135,7 +135,7 @@ function Authentication() {
                   type="text"
                   name="name"
                   placeholder="Please enter your full name..."
-                  value={formik.values.name}
+                  value={formik.values.name || ""}
                   onChange={formik.handleChange}
                 />
                 {formik.touched.name && formik.errors.name ? (
@@ -152,7 +152,7 @@ function Authentication() {
                   type="email"
                   name="email"
                   placeholder="Please enter your email..."
-                  value={formik.values.email}
+                  value={formik.values.email || ""}
                   onChange={formik.handleChange}
                 />
                 {formik.touched.email && formik.errors.email ? (
