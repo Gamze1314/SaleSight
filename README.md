@@ -1,6 +1,6 @@
 # SaleSight App
 
-[Watch the demo video](videos/Untitled-video.mp4)
+[Watch the demo video](video/gif.mp4)
 
 
 ### Overview
