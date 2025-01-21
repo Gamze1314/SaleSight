@@ -1,5 +1,8 @@
 # SaleSight App
 
+[Watch the demo video](videos/Untitled-video.mp4)
+
+
 ### Overview
 
 SaleSight is a full-stack web application designed to empower businesses by streamlining the management of sales and profit metrics. It features a Flask-based backend and leverages Flask-RESTful for API development.
