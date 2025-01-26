@@ -69,23 +69,23 @@ function Authentication() {
 
   // Styling classes
   const formClass =
-    "bg-white shadow-black p-10 rounded-lg shadow-lg w-full max-w-lg transition-shadow duration-300 ease-in-out hover:shadow-red-900";
+    "bg-white shadow-black p-3 rounded-md shadow-lg w-full max-w-sm md:w-1/3 items-center transition-shadow duration-300 ease-in-out hover:shadow-red-900";
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <LogInNavBar />
       <main className="flex flex-col items-center w-full mt-8">
-        <h1 className="text-2xl font-semibold mb-4">
-          {formType === "signup" ? "Sign Up" : "Login"}
+        <h1 className="text-2md font-semibold mb-4 mt-3">
+          {formType === "signup" ? "Sign Up" : " Login"}
         </h1>
         {authError ? <p className="text-red-500 text-sm">{authError}</p> : null}
         <form className={formClass} onSubmit={formik.handleSubmit}>
           {/* Username Input */}
-          <div className="relative mb-4">
+          <div className="relative mb-2 text-sm mt-1">
             <label htmlFor="username">Username:</label>
             <div className="flex items-center mt-2">
               <input
-                className="bg-gray-50 border border-blue-300 text-blue-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10" // Add pr-10 to make space for the icon
+                className="bg-gray-50 border border-blue-300 text-blue-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 pr-8" // Add pr-10 to make space for the icon
                 id="username"
                 type="text"
                 name="username"
@@ -93,7 +93,7 @@ function Authentication() {
                 value={formik.values.username || ""}
                 onChange={formik.handleChange}
               />
-              <FaUser className="mt-4 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaUser className="mt-3 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300" />
             </div>
             {formik.touched.username && formik.errors.username ? (
               <div className="text-red-500 text-sm">
@@ -103,11 +103,11 @@ function Authentication() {
           </div>
 
           {/* Password Input */}
-          <div className="relative mb-4">
+          <div className="relative mb-4 text-sm mt-1">
             <label htmlFor="password">Password:</label>
             <div className="flex items-center mt-2">
               <input
-                className="bg-gray-50 border border-blue-300 text-blue-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-10" // Add pr-10 to make space for the icon
+                className="bg-gray-50 border border-blue-300 text-blue-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2 pr-8" // Add pr-10 to make space for the icon
                 id="password"
                 type="password"
                 name="password"
@@ -115,7 +115,7 @@ function Authentication() {
                 value={formik.values.password || ""}
                 onChange={formik.handleChange}
               />
-              <FaLock className="mt-4 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <FaLock className="mt-3 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-300" />
             </div>
             {formik.touched.password && formik.errors.password ? (
               <div className="text-red-500 text-sm">
@@ -163,17 +163,15 @@ function Authentication() {
               </div>
             </>
           )}
-
           {/* Submit Button */}
           <button
             type="submit"
-            className="mt-6 w-full bg-gray-700 text-white py-2 rounded-lg hover:bg-red-900"
+            className="mt-2 w-full bg-gray-700 text-white text-sm py-2 rounded-lg hover:bg-red-900"
           >
             Submit
           </button>
-
           {/* Navigation Link */}
-          <p className="mt-6 items-center">
+          <p className="mt-6 items-center text-sm">
             {formType === "signup"
               ? "Already have an account? "
               : "Don't have an account? "}

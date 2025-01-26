@@ -1,18 +1,20 @@
-// add new product and filtering options here.
+import { NavLink } from "react-router-dom";
+
+
 function ProductToolBar({ handleAddProfit }) {
   const handleClick = () => {
-    handleAddProfit(); // Call the function to show the form for adding a new product
+    handleAddProfit();
   };
 
   return (
-    <div className="bg-gray-100 p-4 shadow-md flex items-center justify-between w-full rounded-md mt-10 mb-10">
-      {/* Button to Add Product */}
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+    <div className="bg-white p-4 flex flex-col items-start w-full sm:text-sm mt-12">
+      <p className="text-xs font-semibold mb-2">Manage your store</p>
+      <NavLink
+        className="bg-white text-xs text-gray-700 hover:underline"
         onClick={handleClick}
       >
-        Add New Profit Data
-      </button>
+        Add Profit Data
+      </NavLink>
     </div>
   );
 }

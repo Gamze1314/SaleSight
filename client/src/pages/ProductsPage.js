@@ -47,10 +47,14 @@ function ProductsPage() {
   };
 
   return (
-    <div className="flex items-center justify-between w-full mt-10">
+    <div className="flex ih-screen mt-10">
       <MainNavBar />
-      <div className="w-full mt-6">
-        <ProductToolBar handleAddProfit={handleAddProfit}/>
+      {/* Left side bar */}
+      <div className="w-1/4">
+        <ProductToolBar handleAddProfit={handleAddProfit} />
+        {/* Main Content Area */}
+        </div>
+        <div className="flex-1 bg-white p-4">
         {showForm && (
           <ProductForm
             onClose={() => setShowForm(false)}
@@ -67,10 +71,12 @@ function ProductsPage() {
             onEdit={handleEditFormDisplay}
           />
         )}
+        <div className="1/4">
         <ProductsList
           onOptionSelect={handleOptionSelect}
           selectedProduct={selectedProduct}
         />
+        </div>
       </div>
     </div>
   );

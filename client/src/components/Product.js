@@ -25,16 +25,19 @@ function Product({ product, index, onOptionSelect }) {
 
   return (
     <tr className="border-b">
-      <td className="p-3 text-left">
-        <span className="font-bold mr-2">{index + 1}. &nbsp;</span>
-        {formattedDescription}
+      <td className="p-2 text-left sm:text-xs w-1/4">
+        <div className="flex flex-col flex-wrap">
+          <span className="text-xs">
+            {index + 1}. {formattedDescription}&nbsp;
+          </span>
+        </div>
       </td>
-      <td className="p-3 text-left">${total_sales_revenue || 0}</td>
-      <td className="p-3 text-left">{total_quantity_purchased || 0}</td>
-      <td className="p-3 text-left">{total_quantity_sold || 0}</td>
-      <td>
+      <td className="p-3 text-left w-1/4">${total_sales_revenue || 0}</td>
+      <td className="p-3 text-left w-1/4">{total_quantity_purchased || 0}</td>
+      <td className="p-3 text-left w-1/4">{total_quantity_sold || 0}</td>
+      <td className="w-1/4">
         <select
-          className="h-10 w-full rounded border border-solid border-neutral-300 px-4 text-sm"
+          className="h-5 w-full text-center text-xs"
           onChange={handleSelect}
           value={selectedOption}
         >

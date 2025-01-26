@@ -35,11 +35,11 @@ function ProfitAnalytics() {
 
   return (
     <div className="space-y-6 p-4">
-      <h2 className="text-2xl font-semibold mb-6">Profit Analytics</h2>
+      <h2 className="text-xs font-semibold mb-6">Profit Analytics</h2>
       {salesData.sales?.length === 0 ? (
         <p>No data available</p>
       ) : (
-        <p>Please click on the blue dot to display profit details.</p>
+        <p className="text-xs">Please click on the blue dot to display profit details.</p>
       )}
       <ChartContainer data={chartData} />
       <RelatedInfo data={firstRecord} username={formattedUsername} />
@@ -59,9 +59,9 @@ const formatMargin = (value, name) => {
 };
 
 const ChartContainer = ({ data }) => (
-  <div className="bg-white shadow rounded-lg p-6">
-    <h4 className="text-lg font-medium mb-4">Profit Trend</h4>
-    <div className="h-80">
+  <div className="bg-white p-6">
+    <h4 className="text-xs font-medium mb-4">Profit Trend</h4>
+    <div className="h-60">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -94,12 +94,12 @@ const ChartContainer = ({ data }) => (
 );
 
 const RelatedInfo = ({ data, username }) => (
-  <div className="bg-white shadow rounded-lg p-6">
-    <h4 className="text-lg font-medium mb-4">Related Information</h4>
+  <div className="bg-white p-4">
+    <h4 className="text-sm font-medium mb-2">Related Information</h4>
     {data?.length > 0 ? (
       <div>
-        <p className="font-medium">User: {username}</p>
-        <p className="font-medium">Inventory Count: {data.length}</p>
+        <p className="font-medium text-xs">User: {username}</p>
+        <p className="font-medium text-xs">Inventory Count: {data.length}</p>
       </div>
     ) : (
       <p>No data available</p>

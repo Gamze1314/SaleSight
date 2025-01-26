@@ -4,21 +4,21 @@ import { GrAnalytics } from "react-icons/gr";
 
 function LogInNavBar() {
   return (
-    <div className="fixed top-0 w-full flex justify-between items-center p-4 bg-gray-800 text-white shadow-lg  hover:shadow-red-900">
+    <div className="fixed top-0 w-full flex justify-between items-center sm:text-sm p-1 bg-gray-800 text-white shadow-md hover:shadow-red-900 mb-10">
       <div className="flex items-center">
-        <p className="text-3xl font-bold ml-4">SaleSight</p>
-        <GrAnalytics className="ml-3 mt-6 transform -translate-y-1/2 text-2xl" />
+        <p className="font-bold ml-4">SaleSight</p>
+        <GrAnalytics className="ml-3 mt-4 transform -translate-y-1/2" />
       </div>
       <div className="flex space-x-6 mr-4">
         <NavLink
           to="/about"
-          className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
+          className="px-2 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
         >
           About
         </NavLink>
         <NavLink
           to="/login"
-          className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors text-lg font-semibold"
+          className="px-2 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
         >
           Login
         </NavLink>

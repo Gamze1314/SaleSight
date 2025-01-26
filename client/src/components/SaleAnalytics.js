@@ -11,31 +11,41 @@ function SaleAnalytics() {
   const totalQuantity = salesAnalyticsData?.total_quantity_sold || 0;
 
   return (
-    <div className="space-y-6 p-4">
-      {error && <div className="text-red-500 mb-4">{error.message}</div>}
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium">Total Revenue</h3>
-          <p className="text-2xl font-bold text-green-600">
-            {formatCurrency(totalRevenue)}
-          </p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium">Total Cost</h3>
-          <p className="text-2xl font-bold text-red-600">
-            {formatCurrency(totalCost)}
-          </p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium">{totalProfit < 0 ? "Total Loss" : "Total Profit"}</h3>
-          <p className="text-2xl font-bold text-blue-600">
-            {formatCurrency(totalProfit)}
-          </p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-6">
-          <h3 className="text-lg font-medium">Total Items Sold</h3>
-          <p className="text-2xl font-bold text-purple-600">{totalQuantity}</p>
+    <div className="flex items-center flex-col space-y-4 p-2 mb-6 sm:text-xs">
+      {error && (
+        <div className="text-red-500 mb-4 text-xs">{error.message}</div>
+      )}
+      {/* Summary Card */}
+      <div className="grid grid-cols-1 gap-4">
+        <div className="bg-white p-1 flex flex-row items-center space-x-10">
+          <div className="flex flex-row items-center space-x-2">
+            <h3 className="text-sm font-bold font-medium-bold">
+              Total Revenue:
+            </h3>
+            <p className="text-xl font-bold text-green-600">
+              {formatCurrency(totalRevenue)}
+            </p>
+          </div>
+          <div className="flex flex-row items-center space-x-2">
+            <h3 className="text-sm font-bold font-medium-bold">Total Cost:</h3>
+            <p className="text-xl font-bold text-red-600">
+              {formatCurrency(totalCost)}
+            </p>
+          </div>
+          <div className="flex flex-row items-center space-x-2">
+            <h3 className="text-sm font-bold font-medium-bold">
+              {totalProfit < 0 ? "Total Loss:" : "Total Profit:"}
+            </h3>
+            <p className="text-xl font-bold text-blue-600">
+              {formatCurrency(totalProfit)}
+            </p>
+          </div>
+          <div className="flex flex-row items-center space-x-2">
+            <h3 className="text-sm font-bold font-medium-bold">
+              Total Items Sold:
+            </h3>
+            <p className="text-xl font-bold text-purple-600">{totalQuantity}</p>
+          </div>
         </div>
       </div>
     </div>

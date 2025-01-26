@@ -29,27 +29,27 @@ function CostAnalytics() {
   }]
 
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 p-4 overflow-x-hidden overflow-y-hidden w-full">
       {/* Error Message Display */}
       {error && <div className="text-red-500 mb-4">{error.message}</div>}
 
-      <h2 className="text-2xl font-semibold mb-6">Cost Analytics</h2>
+      <h2 className="text-sm font-semibold mb-6">Cost Analytics</h2>
 
       {/* Check for sales data availability */}
       {salesData.sales?.length === 0 ? (
-        <p>No data available</p>
+        <p className="text-xs">No data available</p>
       ) : (
-        <p>
+        <p className="text-xs">
           Analyze your revenue and cost here. Great job on keeping the cost at a
           minimum!
         </p>
       )}
 
       {/* Chart Display */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h4 className="text-lg font-medium mb-4">Revenue vs Cost</h4>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
+      <div className="bg-white p-2 overflow-x-hidden overflow-y-hidden w-full relative static">
+        <h4 className="text-sm font-medium mb-4">Revenue vs Cost</h4>
+        <div className="h-50">
+          <ResponsiveContainer width="99%" aspect={3} height="100% ">
             <BarChart data={chartData}>
               {/* Grid lines */}
               <CartesianGrid strokeDasharray="3 3" />
