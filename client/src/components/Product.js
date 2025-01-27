@@ -37,7 +37,7 @@ function Product({ product, index, onOptionSelect }) {
       <td className="p-3 text-left w-1/4">{total_quantity_sold || 0}</td>
       <td className="w-1/4">
         <select
-          className="h-5 w-full text-center text-xs"
+          className="h-5 text-center text-xs"
           onChange={handleSelect}
           value={selectedOption}
         >

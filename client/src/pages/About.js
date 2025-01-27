@@ -19,7 +19,7 @@ function About() {
   useEffect(() => {
     const messageTimer = setTimeout(() => {
       setMessage(
-        "Welcome to SaleSight! Your Revenue and Profit Management Tool"
+        "SaleSight is your revenue and profit management tool!"
       );
       setLoading(false);
     }, 1000);
@@ -40,16 +40,16 @@ function About() {
   return (
     <>
       <LogInNavBar />
-      <div className="flex flex-col justify-center bg-gray-100 min-h-screen pt-3">
-        <div className="h-content-height flex-col flex items-center justify-center mb-6 transition-shadow duration-300 ease-in-out hover:shadow-red-900">
+      <div className="flex flex-col justify-center items-center bg-white min-h-screen pt-3 sm:text-xs">
+        <div className="text-xs h-content-height flex-col flex items-center justify-center mb-6 transition-shadow duration-300 ease-in-out hover:shadow-red-900">
           {loading ? (
-            <p className="text-gray-600 text-center text-xl w-full max-w-5xl mt-6 p-4">
-              Loading...
+            <p className="text-red-600 text-center text-xs w-full max-w-5xl mt-6 p-4">
+              Welcome to SaleSight!
             </p>
           ) : (
             <>
-              <h1 className="text-3xl font-bold text-gray-800">{message}</h1>
-              <p className="text-gray-600 text-center text-xl w-full max-w-5xl mt-6 p-4">
+              <h1 className="text-xs font-bold text-gray-800">{message}</h1>
+              <p className="text-gray-600 text-center text-xs w-full max-w-4xl mt-6 p-2">
                 At SaleSight, we believe tracking your product sales and
                 maximizing profits should be effortless and intuitive, with the
                 power of real-time updates at your fingertips. Whether you’re an
@@ -57,7 +57,7 @@ function About() {
                 to simplify your sales management and boost profit optimization,
                 making growth easier than ever.
               </p>
-              <p className="text-gray-600 text-center text-xl w-full max-w-5xl mt-6 p-4">
+              <p className="text-gray-600 text-center text-xs w-full max-w-5xl mt-6 p-4">
                 And we believe in numbers, which drive our insights and
                 decisions.
               </p>
@@ -69,12 +69,12 @@ function About() {
         {/* Key Points Section */}
         <div className="flex justify-center space-x-6 max-w-5xl mx-auto">
           {cardVisible[0] && (
-            <div className="bg-blue-100 rounded-lg shadow-lg p-8 flex flex-row items-center justify-between mb-6 transition-shadow duration-300 ease-in-out hover:shadow-red-900 w-full max-w-md">
+            <div className="bg-white rounded-lg shadow-lg p-6 ml-2 mr-2 flex flex-row items-center justify-between mb-6 transition-shadow duration-300 ease-in-out hover:shadow-red-900 w-full max-w-md">
               <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-sm font-bold text-gray-800">
                   Profit Intelligence
                 </h2>
-                <p className="text-gray-600 mt-2 text-xl">
+                <p className="text-gray-600 mt-2 text-xs">
                   Streamlines profit calculation for each product and visualizes
                   cost and revenue with business analytics tools.
                 </p>
@@ -84,12 +84,12 @@ function About() {
           )}
 
           {cardVisible[1] && (
-            <div className="bg-blue-100 rounded-lg shadow-lg p-6 flex flex-row items-center justify-between mb-8 transition-shadow duration-300 ease-in-out hover:shadow-red-900 w-full max-w-md">
+            <div className="bg-white rounded-lg shadow-lg p-6 ml-1 flex flex-row items-center justify-between mb-8 transition-shadow duration-300 ease-in-out hover:shadow-red-900 w-full max-w-md">
               <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-sm font-bold text-gray-800">
                   Cost Optimization
                 </h2>
-                <p className="text-gray-600 mt-2 text-xl">
+                <p className="text-gray-600 mt-2 text-xs">
                   Designed to calculate and track revenues, sales, costs, and
                   profits for products sold by users.
                 </p>
@@ -103,12 +103,12 @@ function About() {
           )}
 
           {cardVisible[2] && (
-            <div className="bg-blue-100 rounded-lg shadow-lg p-6 flex flex-row items-center justify-between mb-8 transition-shadow duration-300 ease-in-out hover:shadow-red-900 w-full max-w-md">
+            <div className="bg-white rounded-lg shadow-lg p-6 ml-1 flex flex-row items-center justify-between mb-8 transition-shadow duration-300 ease-in-out hover:shadow-red-900 w-full max-w-md">
               <div className="flex flex-col">
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-sm font-bold text-gray-800">
                   Real-Time Revenue Management
                 </h2>
-                <p className="text-gray-600 mt-2 text-xl">
+                <p className="text-gray-600 mt-1 text-xs">
                   Continuously track and monitor changes in revenue, sales, and
                   costs, providing immediate insights into business health.
                 </p>
@@ -120,6 +120,12 @@ function About() {
               />
             </div>
           )}
+        </div>
+        <div className="mt-10 w1/4">
+          <p className="text-xs hover:text-red-900 font-semibold">Contact</p>
+          <p className="text-xs hover:text-red-900">Linkedln</p>
+          <p className="text-xs hover:text-red-900">Medium</p>
+          <p className="text-xs hover:text-red-900">X</p>
         </div>
       </div>
     </>

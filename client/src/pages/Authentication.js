@@ -5,7 +5,7 @@ import * as yup from "yup";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { NavLink, useLocation } from "react-router-dom";
-import { FaUser, FaLock } from "react-icons/fa"; // Import icons
+import { FaUser, FaLock } from "react-icons/fa";
 
 function Authentication() {
   const { login, authError, setAuthError, signup } = useContext(AuthContext);
@@ -127,14 +127,14 @@ function Authentication() {
           {/* Sign Up Fields */}
           {formType === "signup" && (
             <>
-              <div className="mt-4">
+              <div className="mt-4 text-sm">
                 <label htmlFor="name">Full Name:</label>
                 <input
-                  className="bg-gray-50 border border-blue-300 text-blue-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mt-2"
+                  className="bg-gray-50 border border-blue-300 text-blue-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mt-1"
                   id="name"
                   type="text"
                   name="name"
-                  placeholder="Please enter your full name..."
+                  placeholder="Please enter your full name.."
                   value={formik.values.name || ""}
                   onChange={formik.handleChange}
                 />
@@ -144,10 +144,10 @@ function Authentication() {
                   </div>
                 ) : null}
               </div>
-              <div className="mt-4">
+              <div className="mt-4 text-sm">
                 <label htmlFor="email">Email:</label>
                 <input
-                  className="bg-gray-50 border border-blue-300 text-blue-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mt-2"
+                  className="bg-gray-50 border border-blue-300 text-blue-900 text-xs rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 mt-1 mb-3"
                   id="email"
                   type="email"
                   name="email"

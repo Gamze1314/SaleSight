@@ -129,7 +129,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur">
-      <div className="relative bg-white shadow rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="relative bg-white shadow rounded-lg p-2 max-w-4xlw-full max-h-[90vh] overflow-y-auto">
         <button
           className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
           onClick={onClose}
@@ -137,15 +137,15 @@ function ProductProfitTable({ onClose, selectedProduct }) {
           ✕
         </button>
         {error && <div className="text-red-700">{error}</div>}
-        <p className="text-center text-lg text-black-500">Profit Table</p>
+        <p className="text-center text-sm text-black-500">Profit Table</p>
         {localData.length > 0 ? (
           <>
-            <h4 className="text-md font-medium mb-4">
+            <h4 className="text-xs font-medium mb-4">
               The sales data is shown for Product: '
               {localData[0].productDescription}'
             </h4>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-xs">
                 <thead>
                   <tr className="bg-gray-100">
                     <th className="p-2 text-left">Sale ID</th>
@@ -279,7 +279,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
             </div>
           </>
         ) : (
-          <p className="text-center text-gray-500">
+          <p className="text-center text-xs text-gray-500">
             No sales data found for product '{prodData.description}'. Please
             navigate to Select Action Tab, then select 'Add Profit Metrics'
             option to add sales data.
