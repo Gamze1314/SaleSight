@@ -14,13 +14,15 @@ with app.app_context():
         name='John Doe',
         email='john@gmail.com',
         username='johndoe',
-        password_hash=flask_bcrypt.generate_password_hash('password123')
+        password_hash=flask_bcrypt.generate_password_hash(
+            'password123').decode('utf-8')
     )
     user2 = User(
         name='Jane Smith',
         email='jane@gmail.com',
         username='janesmith',
-        password_hash=flask_bcrypt.generate_password_hash('bob')
+        password_hash=flask_bcrypt.generate_password_hash(
+            'bob').decode('utf-8')
     )
     db.session.add_all([user1, user2])
     db.session.commit()
