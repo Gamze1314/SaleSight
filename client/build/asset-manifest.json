@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.30ed4890.css",
+    "main.js": "/static/js/main.77410cd1.js",
+    "static/media/revenue.png": "/static/media/revenue.e10aa59ce713328aa9d6.png",
+    "static/media/profit.png": "/static/media/profit.f3e246d34b7b356f1ede.png",
+    "static/media/data.png": "/static/media/data.03ff5b8590a4f2649c21.png",
+    "static/media/pie.png": "/static/media/pie.146ae559a43f911cd538.png",
+    "index.html": "/index.html",
+    "main.30ed4890.css.map": "/static/css/main.30ed4890.css.map",
+    "main.77410cd1.js.map": "/static/js/main.77410cd1.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.30ed4890.css",
+    "static/js/main.77410cd1.js"
+  ]
+}

@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { SalesContext } from "../context/SalesContext"; // Make sure you import your context correctly
+import { SalesContext } from "../context/SalesContext";
 import { AuthContext } from "../context/AuthContext";
 
 function ErrorPage() {

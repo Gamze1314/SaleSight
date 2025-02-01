@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { stringFormatter } from "../utils";
 
 function Product({ product, index, onOptionSelect }) {
