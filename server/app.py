@@ -765,4 +765,7 @@ api.add_resource(SaleByID, '/sale/<int:sale_id>')
 
 # this script runs the app
 if __name__ == '__main__':
-    app.run(debug=True, port=5555)
+    app.run(debug=True, port=6000)
+
+# gunicorn: Required for running the application in a production WSGI server.
+# honcho start -f Procfile.dev  => to run both react and flask servers.

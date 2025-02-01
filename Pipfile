@@ -12,6 +12,9 @@ sqlalchemy-serializer = "*"
 flask-bcrypt = "*"
 python-dotenv = "*"
 flask-cors = "*"
+psycopg2-binary = "*"
+gunicorn = "*"
+honcho = "*"
 
 [dev-packages]
 

@@ -95,7 +95,9 @@ const ChartContainer = ({ data }) => (
 
 const RelatedInfo = ({ data, username }) => (
   <div className="bg-white p-4">
-    <h4 className="text-sm font-medium mb-2">Related Information</h4>
+    <h4 className="text-sm font-medium mb-2">
+      Related Information
+    </h4>
     {data?.length > 0 ? (
       <div>
         <p className="font-medium text-xs">User: {username}</p>

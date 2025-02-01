@@ -4,8 +4,8 @@ import { AuthContext } from "../context/AuthContext";
 
 function ErrorPage() {
   // Access errors from both contexts
-  const { error: error } = useContext(SalesContext) || {};
-  const { error: authError } = useContext(AuthContext) || {};
+  const { error } = useContext(SalesContext) || {};
+  const { authError } = useContext(AuthContext) || {};
 
   // navigate to login page
   const navigateToLogin = () => {
