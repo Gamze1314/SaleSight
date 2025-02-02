@@ -40,6 +40,7 @@ def register():
 
 
 
+#static files are loading.
 @app.route('/static/<folder>/<file>')
 def static_proxy(folder, file):
     static_folder = os.path.join(REACT_BUILD_DIR, 'static')
@@ -50,7 +51,7 @@ class CheckSession(Resource):
     def get(self):
         try:
             # Safely get user_id from session
-            user_id = session.get('user_id')
+            user_id = session['user_id']
             if user_id:
                 user = User.query.filter_by(id=user_id).first()
                 if user:
