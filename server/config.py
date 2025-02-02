@@ -13,7 +13,7 @@ from flask_restful import Api
 from flask_cors import CORS
 
 
-app = Flask(__name__, static_folder='../client/build', static_url_path='/')
+app = Flask(__name__, static_folder='../client/build', static_url_path='')
 
 cors = CORS(app)  # Allows cross-origin requests
 # creates a bcrpyt object

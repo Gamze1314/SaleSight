@@ -14,16 +14,16 @@ from helpers import update_profit_metrics, calculate_analytics, calculate_sales_
 # print(pw_hash)
 REACT_BUILD_DIR = os.path.abspath(os.path.join(os.getcwd(), '../client/build'))
 
-# @app.route('/')
-# def index():
-#     # Serve the index.html file directly from the React build directory
-#     index_path = os.path.join(REACT_BUILD_DIR, 'index.html')
+@app.route('/')
+def index():
+    # Serve the index.html file directly from the React build directory
+    index_path = os.path.join(REACT_BUILD_DIR, 'index.html')
 
-#     # Check if the index.html exists for debugging purposes
-#     if not os.path.exists(index_path):
-#         return f"File not found: {index_path}", 404
+    # Check if the index.html exists for debugging purposes
+    if not os.path.exists(index_path):
+        return f"File not found: {index_path}", 404
 
-#     return send_from_directory(REACT_BUILD_DIR, 'index.html')
+    return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
 @app.route('/login')
 def login():
@@ -34,7 +34,7 @@ def logout():
     session.clear()  # Clears all session data
     return make_response('Logged out successfully.', 200)
 
-@app.route('/singup')
+@app.route('/signup')
 def register():
     return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
