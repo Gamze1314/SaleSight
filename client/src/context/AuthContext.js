@@ -11,32 +11,32 @@ export const AuthProvider = ({ children }) => {
 
   // Check session on mount
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch("/check_session");
-        if (response.ok) {
-          const user = await response.json();
-          setCurrentUser(user);
-          navigate("/my_store");
-          setAuthError(""); // Clear any previous error
-        } else {
-          const errorData = await response.json();
-          setAuthError(errorData.message);
+    // Only check session if currentUser is set
+    if (!currentUser) {
+      const checkSession = async () => {
+        try {
+          const response = await fetch("/check_session", {
+            method: "GET",
+            credentials: "include", // Ensure cookies are sent with the request
+          });
+
+          if (response.ok) {
+            const user = await response.json();
+            setCurrentUser(user); // Set the user in the state
+            navigate("/my_store"); // Redirect to the authenticated page
+          } else {
+            const errorData = await response.json();
+            setAuthError(errorData.message);
+          }
+        } catch (err) {
+          setAuthError("An error occurred while checking the session.");
+          console.error(err);
         }
-      } catch (err) {
-        setAuthError("An error occurred while logging in.");
-        console.error(err);
-      }
-    };
-    checkSession();
-  }, [navigate]);
+      };
 
-
-  useEffect(() => {
-    if (currentUser) {
       checkSession();
     }
-  }, [currentUser]);
+  }, [currentUser, navigate]); // This effect runs only once when currentUser is null
 
   // Function to log in the user
   const login = async (username, password) => {
@@ -89,7 +89,9 @@ export const AuthProvider = ({ children }) => {
         setAuthError(errorData.message || "Failed to sign up");
       }
     } catch (err) {
-      setAuthError("Signup request failed. Please check your credentials and try again.");
+      setAuthError(
+        "Signup request failed. Please check your credentials and try again."
+      );
       console.error(err);
     }
   };
