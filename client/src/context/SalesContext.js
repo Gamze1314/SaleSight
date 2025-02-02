@@ -38,6 +38,7 @@ export const SalesProvider = ({ children }) => {
     fetchSalesAnalyticsData(); // Call the function inside useEffect
   }, [currentUser]); // Only re-run when `currentUser` changes
 
+
   // Fetch initial sales data, if user is logged in.
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -257,7 +258,6 @@ export const SalesProvider = ({ children }) => {
         deleteProductSale,
         updateSale,
         setError,
-        fetchSalesAnalyticsData,
       }}
     >
       {loading ? (
