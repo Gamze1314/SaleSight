@@ -58,7 +58,7 @@ function Authentication() {
       setFormType("login");
       formik.resetForm();
     }
-  }, [location.pathname]);
+  }, [location.pathname, formik]);
 
   // useEffect to clear previous error state if signup or login switch is done.
   useEffect(() => {
