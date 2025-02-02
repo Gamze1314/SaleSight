@@ -3,5 +3,15 @@
 @tailwind utilities;
 
 body {
-  font-family: font-sans;
+  font-family: 'Times New Roman', serif;
+}
+
+@layer utilities {
+  .responsive-text {
+    @apply text-base md:text-md-base lg:text-lg-base;
+  }
+  
+  .responsive-heading {
+    @apply text-2xl md:text-md-2xl lg:text-lg-2xl;
+  }
 }
