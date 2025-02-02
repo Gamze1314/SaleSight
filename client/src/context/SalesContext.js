@@ -76,7 +76,7 @@ export const SalesProvider = ({ children }) => {
       }
     };
     fetchSalesData();
-  }, [currentUser]);
+  }, [currentUser, error]);
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
