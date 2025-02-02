@@ -38,7 +38,7 @@ export const SalesProvider = ({ children }) => {
   // Fetching sales analytics data on component mount.
   useEffect(() => {
     fetchSalesAnalyticsData();
-  }, []);
+  }, [fetchSalesAnalyticsData]);
 
 
   // Fetch initial sales data, if user is logged in.

@@ -41,7 +41,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
 
       setLocalData(sortedData);
     }
-  }, [selectedProduct]);
+  }, [selectedProduct, prodData.description, prodData.id, prodData.sales]);
 
   const handleDelete = async (saleId) => {
     alert("Are you sure you want to delete this profit metric?");

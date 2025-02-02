@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
       }
     };
     checkSession();
-  }, []);
+  }, [navigate]);
 
   // Function to log in the user
   const login = async (username, password) => {
