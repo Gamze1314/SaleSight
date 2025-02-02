@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
             setAuthError(errorData.message);
           }
         } catch (err) {
-          setAuthError("An error occurred while checking the session.");
+          setAuthError("Please enter your credentials to login.");
           console.error(err);
         }
       };

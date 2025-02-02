@@ -25,19 +25,16 @@ def index():
 
     return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
-@app.route('/login')
-def login():
-    return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
-@app.route('/logout')
-def logout():
-    session.clear()  # Clears all session data
-    return make_response('Logged out successfully.', 200)
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    # Serve the React app for all routes except API routes
+    if not path.startswith("api/"):  # Prevent React from interfering with API routes
+        return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
-@app.route('/signup')
-def register():
-    return send_from_directory(REACT_BUILD_DIR, 'index.html')
-
+    # If the request is for an API route, return a 404 response
+    return "Not Found", 404
 
 
 #static files are loading.

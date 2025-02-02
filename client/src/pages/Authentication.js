@@ -52,13 +52,11 @@ function Authentication() {
 
   useEffect(() => {
     if (location.pathname === "/signup") {
-      formik.resetForm();
       setFormType("signup");
     } else {
       setFormType("login");
-      formik.resetForm();
     }
-  }, [location.pathname, formik]);
+  }, [location.pathname]);
 
   // useEffect to clear previous error state if signup or login switch is done.
   useEffect(() => {
