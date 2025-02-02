@@ -3,7 +3,7 @@ This module defines the routes for the Flask application and serves as the entry
 """
 import os
 from flask import Flask, make_response, request, abort, session, send_from_directory
-from config import db, app, api, flask_bcrypt, REACT_BUILD_DIR
+from config import db, app, api, flask_bcrypt
 from flask_restful import Resource
 from models import User, Product, Profit, ProductSale, Cost, User_Product_Association
 from decimal import Decimal
@@ -12,24 +12,42 @@ from helpers import update_profit_metrics, calculate_analytics, calculate_sales_
 # pw_hash = flask_bcrypt.generate_password_hash('hunter2')
 # flask_bcrypt.check_password_hash(pw_hash, 'hunter2')  # returns True
 # print(pw_hash)
+REACT_BUILD_DIR = os.path.abspath(os.path.join(os.getcwd(), '../client/build'))
+
+# @app.route('/')
+# def index():
+#     # Serve the index.html file directly from the React build directory
+#     index_path = os.path.join(REACT_BUILD_DIR, 'index.html')
+
+#     # Check if the index.html exists for debugging purposes
+#     if not os.path.exists(index_path):
+#         return f"File not found: {index_path}", 404
+
+#     return send_from_directory(REACT_BUILD_DIR, 'index.html')
 
 
-@app.route('/')
-def index():
-    # Serve the index.html file directly from the React build directory
+# @app.route('/static/<folder>/<file>')
+# def static_proxy(folder, file):
+#     static_folder = os.path.join(REACT_BUILD_DIR, 'static')
+#     return send_from_directory(static_folder, os.path.join(folder, file))
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    # First try to see if this is a static file request
+    if path.startswith('static/'):
+        try:
+            folder, file = path.split('/', 2)[1:]
+            return send_from_directory(folder, file)
+        except:
+            pass
+
+    # Otherwise return the index.html for client-side routing
     index_path = os.path.join(REACT_BUILD_DIR, 'index.html')
-
-    # Check if the index.html exists for debugging purposes
     if not os.path.exists(index_path):
         return f"File not found: {index_path}", 404
 
     return send_from_directory(REACT_BUILD_DIR, 'index.html')
-
-
-@app.route('/static/<folder>/<file>')
-def static_proxy(folder, file):
-    static_folder = os.path.join(REACT_BUILD_DIR, 'static')
-    return send_from_directory(static_folder, os.path.join(folder, file))
 
 
 class CheckSession(Resource):

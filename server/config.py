@@ -13,12 +13,6 @@ from flask_restful import Api
 from flask_cors import CORS
 
 
-# create a Flask application object
-app = Flask(__name__)
-
-
-REACT_BUILD_DIR = os.path.abspath(os.path.join(os.getcwd(), '../client/build'))
-
 
 app = Flask(
     __name__,

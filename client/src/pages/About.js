@@ -1,11 +1,5 @@
-// this page will explain what SaleSight offers to users.
-// (unprotected route)
-// renders LogInNavBar and key points.
-
 import React, { useState, useEffect } from "react";
 import LogInNavBar from "../components/LogInNavBar";
-
-// Import images for cards
 import pie from "../assets/pie.png";
 import profit from "../assets/profit.png";
 import revenue from "../assets/revenue.png";
@@ -41,7 +35,7 @@ function About() {
   return (
     <>
       <LogInNavBar />
-      <div className="flex flex-col justify-center items-center bg-white min-h-screen pt-3 sm:text-xs">
+      <div className="flex flex-col justify-center items-center bg-white min-h-screen pt-3 sm:text-sm">
         <div className="text-xs h-content-height flex-col flex items-center justify-center mb-6 transition-shadow duration-300 ease-in-out hover:shadow-red-900">
           {loading ? (
             <p className="text-red-600 text-center text-xs w-full max-w-5xl mt-6 p-4">
