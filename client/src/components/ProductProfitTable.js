@@ -64,7 +64,6 @@ function ProductProfitTable({ onClose, selectedProduct }) {
   };
 
   const handleSave = async (saleId) => {
-    // 10 , 15
     const sale = localData.find((sale) => sale.saleId === saleId);
 
     const updatedTotalSold =
@@ -92,7 +91,7 @@ function ProductProfitTable({ onClose, selectedProduct }) {
         unit_sale_price: parseFloat(editValues.unitSalePrice),
       };
 
-      const updatedSale = await updateSale(editValues, saleId);
+      await updateSale(editValues, saleId);
 
       const updatedSales = localData.map((sale) =>
         sale.saleId === saleId
