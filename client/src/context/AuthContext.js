@@ -31,6 +31,13 @@ export const AuthProvider = ({ children }) => {
     checkSession();
   }, [navigate]);
 
+
+  useEffect(() => {
+    if (currentUser) {
+      checkSession();
+    }
+  }, [currentUser]);
+
   // Function to log in the user
   const login = async (username, password) => {
     try {

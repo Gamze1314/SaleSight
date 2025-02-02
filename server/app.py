@@ -59,9 +59,9 @@ class CheckSession(Resource):
                 else:
                     session.clear()  # Clears all session data
             else:
-                abort(401, 'User is not authenticated.')
+                make_response({'message':'User is not authenticated.'}, 401)
         except Exception as e:
-                abort(500, 'Please enter your credentials to login.')
+                make_response({'message': 'Please enter your credentials to login.'}, 401)
 
 
 api.add_resource(CheckSession, '/check_session')
