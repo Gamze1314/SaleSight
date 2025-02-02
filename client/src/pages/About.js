@@ -18,24 +18,25 @@ function About() {
 
   useEffect(() => {
     const messageTimer = setTimeout(() => {
-      setMessage(
-        "SaleSight is your revenue and profit management tool!"
-      );
+      setMessage("SaleSight is your revenue and profit management tool!");
       setLoading(false);
     }, 1000);
 
     cardVisible.forEach((_, index) => {
-      setTimeout(() => {
-        setCardVisible((prev) => {
-          const newVisibility = [...prev];
-          newVisibility[index] = true;
-          return newVisibility;
-        });
-      }, (index + 1) * 1000 + 1000);
+      setTimeout(
+        () => {
+          setCardVisible((prev) => {
+            const newVisibility = [...prev];
+            newVisibility[index] = true;
+            return newVisibility;
+          });
+        },
+        (index + 1) * 1000 + 1000
+      );
     });
 
     return () => clearTimeout(messageTimer);
-  }, []);
+  }, [cardVisible]);
 
   return (
     <>

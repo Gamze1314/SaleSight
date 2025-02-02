@@ -12,34 +12,31 @@ export const SalesProvider = ({ children }) => {
 
   // do not send GET request if user not logged in. currentUser ?
 
-  // Fetching sale analytics data on component mount, and dependency to salesData
-  const fetchSalesAnalyticsData = async () => {
-    if (currentUser) {
-      console.log("user is authenticated", currentUser)
-      try {
-        const response = await fetch("/sales_analytics");
-
-        if (response.status === 200) {
-        console.log("Sales analytics fetched successfully.")
-        const data = await response.json();
-        setSalesAnalyticsData(data);
-        setLoading(false); // Set loading to false once the data is fetched
-        }
-      } catch (error) {
-        console.error(error);
-        setError(error);
-        setLoading(false); // Set loading to false in case of error
-      }
-    } else {
-      setError("The user is not authenticated. Cannot fetch data.");
-    }
-  };
-
-  // Fetching sales analytics data on component mount.
   useEffect(() => {
-    fetchSalesAnalyticsData();
-  }, [fetchSalesAnalyticsData]);
+    const fetchSalesAnalyticsData = async () => {
+      if (currentUser) {
+        console.log("user is authenticated", currentUser);
+        try {
+          const response = await fetch("/sales_analytics");
 
+          if (response.status === 200) {
+            console.log("Sales analytics fetched successfully.");
+            const data = await response.json();
+            setSalesAnalyticsData(data);
+            setLoading(false); // Set loading to false once the data is fetched
+          }
+        } catch (error) {
+          console.error(error);
+          setError(error);
+          setLoading(false); // Set loading to false in case of error
+        }
+      } else {
+        setError("The user is not authenticated. Cannot fetch data.");
+      }
+    };
+
+    fetchSalesAnalyticsData(); // Call the function inside useEffect
+  }, [currentUser]); // Only re-run when `currentUser` changes
 
   // Fetch initial sales data, if user is logged in.
   useEffect(() => {
@@ -50,7 +47,7 @@ export const SalesProvider = ({ children }) => {
         try {
           const res = await fetch("/user_sales");
           if (res.status === 200) {
-            console.log("Sales fetched successfully.")
+            console.log("Sales fetched successfully.");
             const data = await res.json();
             setSalesData(data);
             setLoading(false); // Set loading to false once the data is fetched
@@ -80,8 +77,10 @@ export const SalesProvider = ({ children }) => {
 
   // API POST request for new product, sale, profit, and cost addition
   const addProduct = async (values) => {
-    // check if product is in the state and setError. 
-    const existingProduct = salesData.find((item) => item.description === values.description);
+    // check if product is in the state and setError.
+    const existingProduct = salesData.find(
+      (item) => item.description === values.description
+    );
     if (existingProduct) {
       setError(`The Product ${existingProduct.description} already exists.`);
       return;
@@ -109,10 +108,9 @@ export const SalesProvider = ({ children }) => {
         setSalesAnalyticsData(sales_analytics);
 
         setLoading(false); // Set loading to false once the data is fetched
-
       } else if (response.status === 400) {
-        console.log("response is 400")
-        const errorData = await response.json()
+        console.log("response is 400");
+        const errorData = await response.json();
         setError(`${errorData.message}`);
         setLoading(false);
         return; // Exit early if the response is not OK
