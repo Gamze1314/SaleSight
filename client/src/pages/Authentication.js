@@ -73,7 +73,7 @@ function Authentication() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <LogInNavBar />
       <main className="flex flex-col items-center w-full mt-8">
-        <h1 className="text-2md font-semibold mb-4 mt-3">
+        <h1 className="text-2md responsive-text font-semibold mb-4 mt-3">
           {formType === "signup" ? "Sign Up" : " Login"}
         </h1>
         {authError ? <p className="text-red-500 text-sm">{authError}</p> : null}
