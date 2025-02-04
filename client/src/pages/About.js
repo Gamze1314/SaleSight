@@ -43,7 +43,7 @@ function About() {
             </p>
           ) : (
             <>
-              <h1 className="text-xs font-bold text-gray-800">{message}</h1>
+              <h1 className="responsive-text font-bold text-gray-800">{message}</h1>
               <p className="text-gray-600 text-center responsive-text w-full max-w-4xl mt-6 p-2">
                 At SaleSight, we believe tracking your product sales and
                 maximizing profits should be effortless and intuitive, with the
