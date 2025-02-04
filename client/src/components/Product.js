@@ -25,9 +25,9 @@ function Product({ product, index, onOptionSelect }) {
 
   return (
     <tr className="border-b">
-      <td className="p-2 text-left sm:text-xs w-1/4">
+      <td className="p-2 text-left responsive-text w-1/4">
         <div className="flex flex-col flex-wrap">
-          <span className="text-xs">
+          <span className="responsive-text">
             {index + 1}. {formattedDescription}&nbsp;
           </span>
         </div>
@@ -37,7 +37,7 @@ function Product({ product, index, onOptionSelect }) {
       <td className="p-3 text-left w-1/4">{total_quantity_sold || 0}</td>
       <td className="w-1/4">
         <select
-          className="h-5 text-center text-xs"
+          className="h-5 text-center responsive-text"
           onChange={handleSelect}
           value={selectedOption}
         >
