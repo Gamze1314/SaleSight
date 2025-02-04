@@ -4,9 +4,8 @@ import * as Yup from "yup";
 import { SalesContext } from "../context/SalesContext";
 import { stringFormatter } from "../utils";
 
-// Validation Schemas
+
 const ValidationSchema = Yup.object().shape({
-  // format description initial upper rest is lower. stringFormatter
   description: Yup.string()
     .required("Description is required")
     .transform((value) => stringFormatter(value))
@@ -24,7 +23,7 @@ const ValidationSchema = Yup.object().shape({
       "Quantity Purchased must be greater than or equal to Quantity Sold",
       function (value) {
         const { quantity } = this.parent; // `quantity` refers to `quantity_sold` in the form values
-        return value >= quantity; // Ensure quantity_purchased is >= quantity_sold
+        return value >= quantity;
       }
     ),
 });
@@ -39,18 +38,16 @@ const ProductForm = ({
   const { salesData, addProduct, addProductSale, error, setError } =
     useContext(SalesContext);
 
-  // else, use salesData to find the product.
   const relevantData = salesData;
   const product = relevantData.find((item) => item.id === selectedProductId);
 
-  // If the product is found, get the product description; otherwise, default to "Unknown Product"
   const productDescription = product ? product.description : "Unknown Product";
 
   const formik = useFormik({
     initialValues:
       selectedOption === "edit_metrics"
         ? {
-            description: productDescription, // Initialize with product description if available
+            description: productDescription,
             unit_value: "",
             quantity: "",
             marketing_cost: "",
@@ -73,7 +70,6 @@ const ProductForm = ({
     validationSchema: ValidationSchema,
     onSubmit: async (values) => {
       try {
-        // Clear previous error
         setError(null);
 
         if (selectedOption === "edit_metrics") {
@@ -81,30 +77,27 @@ const ProductForm = ({
         } else {
           await addProduct(values);
         }
-        // If there is no error, close the form and reset states
         if (!error) {
           onClose();
           onOperationComplete();
           formik.resetForm();
         }
-      } catch (error) {
-        // After submitting the form, and response is not okay..
-        setError(error.message || "An error occurred"); // Set error state if there is one
+      } catch (error) {.
+        setError(error.message || "An error occurred");
       }
     },
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur">
+    <div className="fixed inset-0 z-50 responsive-text flex items-center justify-center bg-black bg-opacity-50 backdrop-blur">
       <div className="relative bg-white rounded-lg shadow-xl w-full max-w-2xl p-8">
-        {/* Close Button */}
         <button
           className="absolute top-4 right-4 text-gray-500 text-xs hover:text-gray-800"
           onClick={onClose}
         >
           ✕
         </button>
-        <h2 className="text-xs sm:text-xs font-semibold text-gray-800 mb-6">
+        <h2 className="responsive-text font-semibold text-gray-800 mb-6">
           {formAction === "add_product"
             ? "Add New Profit and Product Information:"
             : `Add New Profit Data for Product: ${productDescription}`}
@@ -115,7 +108,7 @@ const ProductForm = ({
               <div>
                 <label
                   htmlFor="description"
-                  className="block text-xs font-medium text-gray-700 mb-1"
+                  className="block responsive-text font-medium text-gray-700 mb-1"
                 >
                   Product Description
                 </label>
@@ -127,7 +120,7 @@ const ProductForm = ({
                   value={formik.values.description}
                 />
                 {formik.errors.description && (
-                  <p className="text-xs text-red-600">
+                  <p className="responsive-text text-red-600">
                     {formik.errors.description}
                   </p>
                 )}
@@ -136,7 +129,7 @@ const ProductForm = ({
             <div>
               <label
                 htmlFor="unit_value"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Unit Value
               </label>
@@ -149,7 +142,7 @@ const ProductForm = ({
                 value={formik.values.unit_value}
               />
               {formik.errors.unit_value && (
-                <p className="text-xs text-red-600">
+                <p className="responsive-text text-red-600">
                   {formik.errors.unit_value}
                 </p>
               )}
@@ -157,7 +150,7 @@ const ProductForm = ({
             <div>
               <label
                 htmlFor="quantity"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Quantity Sold
               </label>
@@ -170,13 +163,15 @@ const ProductForm = ({
                 value={formik.values.quantity}
               />
               {formik.errors.quantity && (
-                <p className="text-xs text-red-600">{formik.errors.quantity}</p>
+                <p className="responsive-text text-red-600">
+                  {formik.errors.quantity}
+                </p>
               )}
             </div>
             <div>
               <label
                 htmlFor="marketing_cost"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Marketing Cost
               </label>
@@ -189,7 +184,7 @@ const ProductForm = ({
                 value={formik.values.marketing_cost}
               />
               {formik.errors.marketing_cost && (
-                <p className="text-xs text-red-600">
+                <p className="responsive-text text-red-600">
                   {formik.errors.marketing_cost}
                 </p>
               )}
@@ -197,7 +192,7 @@ const ProductForm = ({
             <div>
               <label
                 htmlFor="shipping_cost"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Shipping Cost
               </label>
@@ -210,7 +205,7 @@ const ProductForm = ({
                 value={formik.values.shipping_cost}
               />
               {formik.errors.shipping_cost && (
-                <p className="text-xs text-red-600">
+                <p className="responsive-text text-red-600">
                   {formik.errors.shipping_cost}
                 </p>
               )}
@@ -218,7 +213,7 @@ const ProductForm = ({
             <div>
               <label
                 htmlFor="packaging_cost"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Packaging Cost
               </label>
@@ -231,7 +226,7 @@ const ProductForm = ({
                 value={formik.values.packaging_cost}
               />
               {formik.errors.packaging_cost && (
-                <p className="text-xs text-red-600">
+                <p className="responsive-text text-red-600">
                   {formik.errors.packaging_cost}
                 </p>
               )}
@@ -239,7 +234,7 @@ const ProductForm = ({
             <div>
               <label
                 htmlFor="unit_sale_price"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Sale Price
               </label>
@@ -252,7 +247,7 @@ const ProductForm = ({
                 value={formik.values.unit_sale_price}
               />
               {formik.errors.unit_sale_price && (
-                <p className="text-xs text-red-600">
+                <p className="responsive-text text-red-600">
                   {formik.errors.unit_sale_price}
                 </p>
               )}
@@ -260,7 +255,7 @@ const ProductForm = ({
             <div>
               <label
                 htmlFor="quantity_purchased"
-                className="block text-xs font-medium text-gray-700 mb-1"
+                className="block responsive-text font-medium text-gray-700 mb-1"
               >
                 Total Quantity Purchased
               </label>
@@ -273,7 +268,7 @@ const ProductForm = ({
                 value={formik.values.quantity_purchased}
               />
               {formik.errors.quantity_purchased && (
-                <p className="text-xs text-red-600">
+                <p className="responsive-text text-red-600">
                   {formik.errors.quantity_purchased}
                 </p>
               )}
@@ -282,7 +277,7 @@ const ProductForm = ({
           <div className="flex justify-between mt-6">
             <button
               type="submit"
-              className="px-4 py-2 text-white text-xs bg-indigo-600 rounded-lg hover:bg-indigo-700"
+              className="px-4 py-2 text-white responsive-text bg-indigo-600 rounded-lg hover:bg-indigo-700"
             >
               Submit
             </button>
