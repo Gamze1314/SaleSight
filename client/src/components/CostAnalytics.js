@@ -34,7 +34,7 @@ function CostAnalytics() {
           minimum!
         </p>
       )}
-      <div className="bg-white p-2 overflow-x-hidden overflow-y-hidden w-full relative static">
+      <div className="bg-white p-2 overflow-x-hidden overflow-y-hidden w-full relative">
         <h4 className="responsive-text font-medium mb-4">Revenue vs Cost</h4>
         <div className="h-50">
           <ResponsiveContainer width="99%" aspect={3} height="100% ">
