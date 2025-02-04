@@ -3,7 +3,6 @@ import { stringFormatter } from "../utils";
 
 function Product({ product, index, onOptionSelect }) {
   const [selectedOption, setSelectedOption] = useState("none");
-
   const { description, total_sales_revenue, total_quantity_sold, total_quantity_purchased } = product;
 
 

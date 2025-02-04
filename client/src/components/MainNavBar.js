@@ -11,7 +11,6 @@ function MainNavBar() {
     logOut();
   };
 
-
   return (
     <div className="fixed top-0 w-full flex justify-between items-center sm:text-sm p-1 bg-gray-800 text-white shadow-md hover:shadow-red-900">
       <div className="flex items-center ml-2 text-lg sm:text-sm">

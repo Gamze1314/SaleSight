@@ -32,14 +32,15 @@ function ProfitAnalytics() {
     },
   ];
 
-
   return (
     <div className="space-y-6 p-4">
       <h2 className="text-xs font-semibold mb-6">Profit Analytics</h2>
       {salesData.sales?.length === 0 ? (
         <p>No data available</p>
       ) : (
-        <p className="text-xs">Please click on the blue dot to display profit details.</p>
+        <p className="text-xs">
+          Please click on the blue dot to display profit details.
+        </p>
       )}
       <ChartContainer data={chartData} />
       <RelatedInfo data={firstRecord} username={formattedUsername} />
@@ -95,9 +96,7 @@ const ChartContainer = ({ data }) => (
 
 const RelatedInfo = ({ data, username }) => (
   <div className="bg-white p-4">
-    <h4 className="text-sm font-medium mb-2">
-      Related Information
-    </h4>
+    <h4 className="text-sm font-medium mb-2">Related Information</h4>
     {data?.length > 0 ? (
       <div>
         <p className="font-medium text-xs">User: {username}</p>

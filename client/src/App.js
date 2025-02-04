@@ -3,14 +3,12 @@ import React from "react";
 import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
-// Import Authentication component
 import Authentication from "./pages/Authentication.js";
 
 function App() {
   const { currentUser } = useContext(AuthContext);
   const location = useLocation();
 
-  // Check if on login or signup path
   const isAuthRoute =
     location.pathname === "/login" || location.pathname === "/signup";
 
@@ -19,13 +17,12 @@ function App() {
     return <Navigate to="/analytics" replace />;
   }
 
-  
   return (
     <>
       {isAuthRoute ? (
         <Authentication />
       ) : (
-        <Outlet /> // Render child components like /about or /analytics
+        <Outlet />
       )}
     </>
   );
