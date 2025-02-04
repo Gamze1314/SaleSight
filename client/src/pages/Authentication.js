@@ -70,7 +70,7 @@ function Authentication() {
     "bg-white shadow-black p-3 rounded-md shadow-lg w-full max-w-sm md:w-1/3 items-center transition-shadow duration-300 ease-in-out hover:shadow-red-900";
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 responsive-text">
       <LogInNavBar />
       <main className="flex flex-col items-center w-full mt-8">
         <h1 className="text-2md responsive-text font-semibold mb-4 mt-3">
